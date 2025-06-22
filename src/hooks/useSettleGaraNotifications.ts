@@ -18,12 +18,11 @@ export interface Notification {
 export const useNotifications = () => {
   return useQuery({
     queryKey: ['settlegara-notifications'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Notification[]> => {
       console.log('Fetching SettleGara notifications...');
       
-      // Use type assertion to work around Supabase type limitations
-      const { data, error } = await supabase
-        .from('settlegara_notifications' as any)
+      const { data, error } = await (supabase as any)
+        .from('settlegara_notifications')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -33,7 +32,7 @@ export const useNotifications = () => {
       }
       
       console.log('Notifications fetched successfully:', data);
-      return (data || []) as Notification[];
+      return data || [];
     },
   });
 };
@@ -42,16 +41,16 @@ export const useMarkNotificationAsRead = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (notificationId: string) => {
-      const { data, error } = await supabase
-        .from('settlegara_notifications' as any)
+    mutationFn: async (notificationId: string): Promise<Notification> => {
+      const { data, error } = await (supabase as any)
+        .from('settlegara_notifications')
         .update({ read: true, updated_at: new Date().toISOString() })
         .eq('id', notificationId)
         .select()
         .single();
       
       if (error) throw error;
-      return data as Notification;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settlegara-notifications'] });
@@ -62,9 +61,9 @@ export const useMarkNotificationAsRead = () => {
 export const useUnreadNotificationsCount = () => {
   return useQuery({
     queryKey: ['settlegara-notifications-unread-count'],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('settlegara_notifications' as any)
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await (supabase as any)
+        .from('settlegara_notifications')
         .select('*', { count: 'exact', head: true })
         .eq('read', false);
       

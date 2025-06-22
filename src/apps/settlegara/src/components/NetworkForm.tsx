@@ -40,7 +40,7 @@ export const NetworkForm: React.FC<NetworkFormProps> = ({ onClose, onSuccess }) 
         if (user) {
           try {
             // Add the creator as the first member (admin role)
-            await supabase
+            await (supabase as any)
               .from('settlegara_network_members')
               .insert({
                 network_id: createdNetwork.id,

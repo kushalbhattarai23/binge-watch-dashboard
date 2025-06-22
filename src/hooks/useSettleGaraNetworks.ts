@@ -26,14 +26,14 @@ export interface NetworkMember {
 export const useNetworks = () => {
   return useQuery({
     queryKey: ['settlegara-networks'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('settlegara_networks' as any)
+    queryFn: async (): Promise<Network[]> => {
+      const { data, error } = await (supabase as any)
+        .from('settlegara_networks')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return (data || []) as Network[];
+      return data || [];
     },
   });
 };
@@ -41,17 +41,17 @@ export const useNetworks = () => {
 export const useNetworkMembers = (networkId: string) => {
   return useQuery({
     queryKey: ['settlegara-network-members', networkId],
-    queryFn: async () => {
+    queryFn: async (): Promise<NetworkMember[]> => {
       if (!networkId) return [];
       
-      const { data, error } = await supabase
-        .from('settlegara_network_members' as any)
+      const { data, error } = await (supabase as any)
+        .from('settlegara_network_members')
         .select('*')
         .eq('network_id', networkId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return (data || []) as NetworkMember[];
+      return data || [];
     },
     enabled: !!networkId,
   });
@@ -61,12 +61,12 @@ export const useCreateNetwork = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (networkData: Omit<Network, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (networkData: { name: string; description: string }): Promise<Network> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
-        .from('settlegara_networks' as any)
+      const { data, error } = await (supabase as any)
+        .from('settlegara_networks')
         .insert({
           ...networkData,
           creator_id: user.id
@@ -77,8 +77,8 @@ export const useCreateNetwork = () => {
       if (error) throw error;
 
       // Add creator as admin member
-      const { error: memberError } = await supabase
-        .from('settlegara_network_members' as any)
+      const { error: memberError } = await (supabase as any)
+        .from('settlegara_network_members')
         .insert({
           network_id: data.id,
           user_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
@@ -91,7 +91,7 @@ export const useCreateNetwork = () => {
         console.error('Error adding creator as member:', memberError);
       }
 
-      return data as Network;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settlegara-networks'] });
@@ -103,15 +103,15 @@ export const useAddNetworkMember = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (memberData: Omit<NetworkMember, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('settlegara_network_members' as any)
+    mutationFn: async (memberData: Omit<NetworkMember, 'id' | 'created_at' | 'updated_at'>): Promise<NetworkMember> => {
+      const { data, error } = await (supabase as any)
+        .from('settlegara_network_members')
         .insert(memberData)
         .select()
         .single();
       
       if (error) throw error;
-      return data as NetworkMember;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['settlegara-network-members', variables.network_id] });

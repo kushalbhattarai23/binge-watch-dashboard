@@ -44,9 +44,8 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
 
   const createNotification = async (userEmail: string, networkName: string) => {
     try {
-      // Use type assertion to work around Supabase type limitations
-      const { error } = await supabase
-        .from('settlegara_notifications' as any)
+      const { error } = await (supabase as any)
+        .from('settlegara_notifications')
         .insert({
           user_email: userEmail,
           title: 'Added to Network',
@@ -101,7 +100,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
       network_id: networkId,
       user_name: formData.user_name.trim(),
       user_email: formData.user_email.trim().toLowerCase(),
-      nickname: formData.nickname.trim() || null,
+      nickname: formData.nickname.trim() || undefined,
       role: formData.role,
       status: 'active'
     };
@@ -110,8 +109,8 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
       onSuccess: async () => {
         // Get network name and create notification
         try {
-          const { data: network } = await supabase
-            .from('settlegara_networks' as any)
+          const { data: network } = await (supabase as any)
+            .from('settlegara_networks')
             .select('name')
             .eq('id', networkId)
             .single();
