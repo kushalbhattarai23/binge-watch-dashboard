@@ -67,9 +67,9 @@ export const LoginForm: React.FC = () => {
         <div>
           <div className="flex items-center space-x-3 mb-8">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
-              <span className="text-xl font-bold">M</span>
+              <span className="text-xl font-bold">T</span>
             </div>
-            <span className="text-2xl font-bold">ModularApp</span>
+            <span className="text-2xl font-bold">Tracker App</span>
           </div>
           
           <div className="space-y-8">
@@ -197,7 +197,7 @@ export const LoginForm: React.FC = () => {
 
               <div className="text-center text-sm text-muted-foreground">
                 <p>
-                  New to ModularApp?{' '}
+                  New to TrackerHub?{' '}
                   <Link to="/signup" className="text-purple-600 hover:text-purple-700 font-medium">
                     Create an account
                   </Link>
@@ -206,20 +206,6 @@ export const LoginForm: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Links */}
-          <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-muted-foreground">Quick access:</p>
-            <div className="flex justify-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-purple-600 hover:text-purple-700">
-                <Tv className="h-4 w-4 mr-1" />
-                TV Shows
-              </Button>
-              <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
-                <DollarSign className="h-4 w-4 mr-1" />
-                Finance
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

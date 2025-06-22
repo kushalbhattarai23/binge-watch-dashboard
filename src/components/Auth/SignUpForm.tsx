@@ -237,28 +237,6 @@ export const SignUpForm: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Links */}
-          <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-muted-foreground">Get started with:</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="ghost" size="sm" className="text-purple-600 hover:text-purple-700">
-                <Tv className="h-4 w-4 mr-1" />
-                TV Shows
-              </Button>
-              <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
-                <DollarSign className="h-4 w-4 mr-1" />
-                Finance
-              </Button>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                <Film className="h-4 w-4 mr-1" />
-                Movies
-              </Button>
-              <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
-                <Calculator className="h-4 w-4 mr-1" />
-                Bill Split
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

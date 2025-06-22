@@ -34,14 +34,6 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       route: '/movies'
     },
     {
-      id: 'settlegara',
-      name: 'SettleGara',
-      description: 'Split bills and settle expenses with friends',
-      icon: Receipt,
-      color: 'from-orange-500 to-red-500',
-      route: '/settlegara'
-    },
-    {
       id: 'settlebill',
       name: 'SettleBill',
       description: 'Advanced bill splitting and expense management',

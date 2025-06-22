@@ -171,13 +171,13 @@ const Login = () => {
             <Button asChild variant="ghost" size="sm" className="text-purple-600 hover:text-purple-700">
               <Link to="/tv-shows/public-shows">
                 <Tv className="h-4 w-4 mr-1" />
-                TV Shows
+                TV Shows public shows
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
               <Link to="/finance">
                 <DollarSign className="h-4 w-4 mr-1" />
-                Finance
+                Finance dashboard
               </Link>
             </Button>
           </div>
