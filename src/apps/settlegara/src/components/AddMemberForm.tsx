@@ -44,9 +44,9 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
 
   const createNotification = async (userEmail: string, networkName: string) => {
     try {
-      // Use direct table insert instead of RPC
+      // Use type assertion to work around Supabase type limitations
       const { error } = await supabase
-        .from('settlegara_notifications')
+        .from('settlegara_notifications' as any)
         .insert({
           user_email: userEmail,
           title: 'Added to Network',
@@ -111,7 +111,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
         // Get network name and create notification
         try {
           const { data: network } = await supabase
-            .from('settlegara_networks')
+            .from('settlegara_networks' as any)
             .select('name')
             .eq('id', networkId)
             .single();
