@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAddNetworkMember } from '@/hooks/useSettleGaraNetworks';
+import { supabase } from '@/integrations/supabase/client';
 import { X, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,11 +22,27 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
   const [formData, setFormData] = useState({
     user_name: '',
     user_email: '',
+    nickname: '',
     role: 'member'
   });
   const [error, setError] = useState<string | null>(null);
+  const [isValidatingUser, setIsValidatingUser] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateUserExists = async (email: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .single();
+      
+      return !error && data;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
@@ -45,20 +62,54 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
       return;
     }
 
+    setIsValidatingUser(true);
+    
+    // Check if user exists in the application
+    const userExists = await validateUserExists(formData.user_email);
+    
+    if (!userExists) {
+      setError('User not found in the application. They must sign up first before being added to the network.');
+      setIsValidatingUser(false);
+      return;
+    }
+
+    setIsValidatingUser(false);
+
     const memberData = {
       network_id: networkId,
       user_name: formData.user_name.trim(),
       user_email: formData.user_email.trim().toLowerCase(),
+      nickname: formData.nickname.trim() || null,
       role: formData.role,
       status: 'active'
     };
 
     addMemberMutation.mutate(memberData, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Create notification for the added member
+        try {
+          const { data: network } = await supabase
+            .from('settlegara_networks')
+            .select('name')
+            .eq('id', networkId)
+            .single();
+
+          await supabase.rpc('create_notification', {
+            p_user_email: formData.user_email.trim().toLowerCase(),
+            p_title: 'Added to Network',
+            p_message: `You have been added to the network "${network?.name || 'Unknown Network'}"`,
+            p_type: 'member_added',
+            p_network_id: networkId
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+
         toast.success('Member added successfully');
         setFormData({
           user_name: '',
           user_email: '',
+          nickname: '',
           role: 'member'
         });
         onSuccess?.();
@@ -71,6 +122,8 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
       }
     });
   };
+
+  const isLoading = addMemberMutation.isPending || isValidatingUser;
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -97,7 +150,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
               onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
               placeholder="Enter member's full name"
               required
-              disabled={addMemberMutation.isPending}
+              disabled={isLoading}
             />
           </div>
           
@@ -110,7 +163,19 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
               onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
               placeholder="Enter member's email"
               required
-              disabled={addMemberMutation.isPending}
+              disabled={isLoading}
+            />
+            <p className="text-xs text-gray-500">User must be registered in the application</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="nickname">Nickname (Optional)</Label>
+            <Input
+              id="nickname"
+              value={formData.nickname}
+              onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+              placeholder="Enter a nickname for this member"
+              disabled={isLoading}
             />
           </div>
 
@@ -119,7 +184,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
             <Select
               value={formData.role}
               onValueChange={(value) => setFormData({ ...formData, role: value })}
-              disabled={addMemberMutation.isPending}
+              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -134,17 +199,17 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
           <div className="flex flex-col sm:flex-row gap-2 pt-4">
             <Button 
               type="submit"
-              disabled={addMemberMutation.isPending || !formData.user_name.trim() || !formData.user_email.trim()}
+              disabled={isLoading || !formData.user_name.trim() || !formData.user_email.trim()}
               className="flex-1"
             >
-              {addMemberMutation.isPending ? 'Adding...' : 'Add Member'}
+              {isLoading ? 'Processing...' : 'Add Member'}
             </Button>
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose} 
               className="flex-1"
-              disabled={addMemberMutation.isPending}
+              disabled={isLoading}
             >
               Cancel
             </Button>
