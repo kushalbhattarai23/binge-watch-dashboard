@@ -28,15 +28,15 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
   const [error, setError] = useState<string | null>(null);
   const [isValidatingUser, setIsValidatingUser] = useState(false);
 
-  const validateUserExists = async (email: string): Promise<boolean> => {
+  const validateUserExists = async (email: string) => {
     try {
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('profiles')
         .select('id')
         .eq('email', email.toLowerCase())
         .single();
       
-      return !error && !!data;
+      return !result.error && !!result.data;
     } catch {
       return false;
     }
@@ -109,7 +109,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
       onSuccess: async () => {
         // Get network name and create notification
         try {
-          const { data: network } = await (supabase as any)
+          const networkResult = await (supabase as any)
             .from('settlegara_networks')
             .select('name')
             .eq('id', networkId)
@@ -117,7 +117,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
 
           await createNotification(
             formData.user_email.trim().toLowerCase(),
-            network?.name || 'Unknown Network'
+            networkResult?.data?.name || 'Unknown Network'
           );
         } catch (error) {
           console.error('Error getting network name:', error);
