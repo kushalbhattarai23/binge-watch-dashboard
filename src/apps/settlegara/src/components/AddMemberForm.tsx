@@ -36,9 +36,27 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
         .eq('email', email.toLowerCase())
         .single();
       
-      return !error && data;
+      return !error && !!data;
     } catch {
       return false;
+    }
+  };
+
+  const createNotification = async (userEmail: string, networkName: string) => {
+    try {
+      const { error } = await supabase.rpc('create_notification', {
+        p_user_email: userEmail,
+        p_title: 'Added to Network',
+        p_message: `You have been added to the network "${networkName}"`,
+        p_type: 'member_added',
+        p_network_id: networkId
+      });
+      
+      if (error) {
+        console.error('Error creating notification:', error);
+      }
+    } catch (notifError) {
+      console.error('Error creating notification:', notifError);
     }
   };
 
@@ -86,7 +104,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
 
     addMemberMutation.mutate(memberData, {
       onSuccess: async () => {
-        // Create notification for the added member
+        // Get network name and create notification
         try {
           const { data: network } = await supabase
             .from('settlegara_networks')
@@ -94,15 +112,12 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
             .eq('id', networkId)
             .single();
 
-          await supabase.rpc('create_notification', {
-            p_user_email: formData.user_email.trim().toLowerCase(),
-            p_title: 'Added to Network',
-            p_message: `You have been added to the network "${network?.name || 'Unknown Network'}"`,
-            p_type: 'member_added',
-            p_network_id: networkId
-          });
-        } catch (notifError) {
-          console.error('Error creating notification:', notifError);
+          await createNotification(
+            formData.user_email.trim().toLowerCase(),
+            network?.name || 'Unknown Network'
+          );
+        } catch (error) {
+          console.error('Error getting network name:', error);
         }
 
         toast.success('Member added successfully');

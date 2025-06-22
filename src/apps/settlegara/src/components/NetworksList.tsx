@@ -100,7 +100,7 @@ const NetworkMembers: React.FC<{ networkId: string }> = ({ networkId }) => {
         {members.slice(0, 4).map((member) => (
           <Avatar key={member.id} className="w-8 h-8 border-2 border-white">
             <AvatarFallback>
-              {(member.nickname || member.user_name).charAt(0).toUpperCase()}
+              {((member as any).nickname || member.user_name).charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         ))}
@@ -113,7 +113,7 @@ const NetworkMembers: React.FC<{ networkId: string }> = ({ networkId }) => {
 
       {members.length > 0 && (
         <div className="text-sm text-gray-600">
-          {members.slice(0, 3).map(m => m.nickname || m.user_name).join(', ')}
+          {members.slice(0, 3).map(m => (m as any).nickname || m.user_name).join(', ')}
           {members.length > 3 && '...'}
         </div>
       )}

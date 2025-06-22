@@ -6,9 +6,11 @@ export interface AppConfig {
   name: string;
   description: string;
   icon: string;
+  color: string;
   routes: {
     path: string;
     name: string;
+    icon?: string;
   }[];
 }
 
@@ -18,6 +20,7 @@ export const apps: AppConfig[] = [
     name: 'Finance',
     description: 'Personal finance tracking and management',
     icon: 'DollarSign',
+    color: 'green',
     routes: [
       { path: '/finance', name: 'Dashboard' },
       { path: '/finance/transactions', name: 'Transactions' },
@@ -34,6 +37,7 @@ export const apps: AppConfig[] = [
     name: 'TV Shows',
     description: 'Track your favorite TV shows and episodes',
     icon: 'Tv',
+    color: 'purple',
     routes: [
       { path: '/tv-shows', name: 'Dashboard' },
       { path: '/tv-shows/my-shows', name: 'My Shows' },
@@ -47,6 +51,7 @@ export const apps: AppConfig[] = [
     name: 'Movies',
     description: 'Track your movie watchlist and ratings',
     icon: 'Film',
+    color: 'blue',
     routes: [
       { path: '/movies', name: 'Movies' }
     ]
@@ -56,6 +61,7 @@ export const apps: AppConfig[] = [
     name: 'SettleBill',
     description: 'Split bills and manage expenses with friends',
     icon: 'Receipt',
+    color: 'indigo',
     routes: [
       { path: '/settlebill', name: 'Dashboard' }
     ]
@@ -65,6 +71,7 @@ export const apps: AppConfig[] = [
     name: 'Admin',
     description: 'Administrative tools and settings',
     icon: 'Settings',
+    color: 'gray',
     routes: [
       { path: '/admin', name: 'Dashboard' },
       { path: '/admin/users', name: 'Users' },
@@ -76,6 +83,7 @@ export const apps: AppConfig[] = [
     name: 'Public',
     description: 'Public shows and universes',
     icon: 'Globe',
+    color: 'blue',
     routes: [
       { path: '/public/shows', name: 'Public Shows' },
       { path: '/public/universes', name: 'Public Universes' }

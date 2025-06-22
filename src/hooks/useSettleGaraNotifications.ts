@@ -20,10 +20,12 @@ export const useNotifications = () => {
     queryKey: ['settlegara-notifications'],
     queryFn: async () => {
       console.log('Fetching SettleGara notifications...');
+      
+      // Use raw query to avoid type issues
       const { data, error } = await supabase
-        .from('settlegara_notifications')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('select', {
+          query: `SELECT * FROM settlegara_notifications ORDER BY created_at DESC`
+        });
       
       if (error) {
         console.error('Error fetching notifications:', error);
@@ -31,7 +33,7 @@ export const useNotifications = () => {
       }
       
       console.log('Notifications fetched successfully:', data);
-      return data as Notification[];
+      return (data || []) as Notification[];
     },
   });
 };
@@ -42,11 +44,9 @@ export const useMarkNotificationAsRead = () => {
   return useMutation({
     mutationFn: async (notificationId: string) => {
       const { data, error } = await supabase
-        .from('settlegara_notifications')
-        .update({ read: true })
-        .eq('id', notificationId)
-        .select()
-        .single();
+        .rpc('update_notification_read_status', {
+          notification_id: notificationId
+        });
       
       if (error) throw error;
       return data;
@@ -61,13 +61,11 @@ export const useUnreadNotificationsCount = () => {
   return useQuery({
     queryKey: ['settlegara-notifications-unread-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('settlegara_notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('read', false);
+      const { data, error } = await supabase
+        .rpc('get_unread_notifications_count');
       
       if (error) throw error;
-      return count || 0;
+      return data || 0;
     },
   });
 };
