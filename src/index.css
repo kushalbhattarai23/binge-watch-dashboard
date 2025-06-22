@@ -1,0 +1,115 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+
+@layer base {
+  :root {
+    --background: 270 100% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 270 100% 97%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 270 100% 97%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 270 50% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 270 30% 95%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 270 30% 95%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 270 30% 95%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 270 20% 90%;
+    --input: 270 20% 90%;
+    --ring: 270 50% 60%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 270 80% 96%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 270 50% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 270 60% 93%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 270 30% 85%;
+    --sidebar-ring: 270 50% 60%;
+
+    /* App-specific colors */
+    --settlegara-primary: 0 84% 60%;
+    --settlegara-secondary: 0 70% 95%;
+    --settlegara-accent: 0 80% 90%;
+    
+    --movies-primary: 220 100% 25%;
+    --movies-secondary: 220 30% 95%;
+    --movies-accent: 220 50% 90%;
+  }
+
+  .dark {
+    --background: 270 30% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 270 30% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 270 30% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 270 50% 70%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 270 20% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 270 20% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 270 20% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 270 20% 20%;
+    --input: 270 20% 20%;
+    --ring: 270 50% 70%;
+    --sidebar-background: 270 40% 8%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 270 50% 70%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 30% 12%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 270 30% 15%;
+    --sidebar-ring: 270 50% 70%;
+
+    /* App-specific colors for dark mode */
+    --settlegara-primary: 0 84% 65%;
+    --settlegara-secondary: 0 30% 15%;
+    --settlegara-accent: 0 40% 20%;
+    
+    --movies-primary: 220 100% 70%;
+    --movies-secondary: 220 30% 15%;
+    --movies-accent: 220 40% 20%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
