@@ -3,10 +3,13 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut } from 'lucide-react';
+import { LogOut, Tv, DollarSign, Film, Receipt, Calculator } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   if (!user) return null;
 
@@ -22,12 +25,43 @@ export const Header: React.FC = () => {
     }
   };
 
+  const quickLinks = [
+    { path: '/tv-shows', icon: Tv, label: 'TV Shows', color: 'purple' },
+    { path: '/finance', icon: DollarSign, label: 'Finance', color: 'green' },
+    { path: '/movies', icon: Film, label: 'Movies', color: 'blue' },
+    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'indigo' },
+    { path: '/settlegara', icon: Calculator, label: 'SettleGara', color: 'orange' },
+  ];
+
   return (
-    <header className="border-b border-border bg-background px-4 lg:px-6 py-3 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-40">
+    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 right-0 z-40">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {/* Space reserved for mobile menu button which is rendered in Sidebar component */}
           <div className="w-10 lg:hidden"></div>
+          
+          {/* Quick Links - Hidden on mobile */}
+          <div className="hidden md:flex items-center space-x-2">
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname.startsWith(link.path);
+              return (
+                <Link key={link.path} to={link.path}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "flex items-center gap-2",
+                      isActive && `bg-${link.color}-600 hover:bg-${link.color}-700 text-white`
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden xl:inline">{link.label}</span>
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">

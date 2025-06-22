@@ -33,7 +33,12 @@ import {
   Sun,
   Moon,
   Calculator,
-  Film
+  Film,
+  LogIn,
+  UserPlus,
+  Shield,
+  FileText,
+  Map
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -65,7 +70,12 @@ const iconMap = {
   MessageSquarePlus,
   Plus,
   Calculator,
-  Film
+  Film,
+  LogIn,
+  UserPlus,
+  Shield,
+  FileText,
+  Map
 };
 
 interface SidebarContentProps {
@@ -239,52 +249,199 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
         {rolesLoading ? (
           <div className="text-center py-12 text-muted-foreground">Loading...</div>
         ) : (
-          visibleApps.map((app) => {
-            if (app.id === 'public') {
-              return (
-                <div key={app.id}>
-                  <div 
+          <>
+            {/* Public Section with Accordion */}
+            <Collapsible 
+              open={isCollapsed && !isMobile ? true : openSections['public']}
+              onOpenChange={() => toggleSection('public')}
+            >
+              <div className="space-y-1">
+                <CollapsibleTrigger asChild>
+                  <button 
                     className={cn(
-                      "w-full flex items-center space-x-2 px-3 py-2",
+                      "w-full flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
                       isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
                     )}
+                    disabled={isCollapsed && !isMobile}
                   >
-                    {React.createElement(getIcon(app.icon), { 
-                      className: `w-5 h-5 text-${app.color}-500 flex-shrink-0` 
-                    })}
+                    <Globe className="w-5 h-5 text-blue-500 flex-shrink-0" />
                     {(!isCollapsed || isMobile) && (
-                      <span className="font-medium text-sm flex-1 text-left">{app.name}</span>
+                      <>
+                        <span className="font-medium text-sm flex-1 text-left">Public</span>
+                        {openSections['public'] ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </>
                     )}
-                  </div>
-                  <div className="space-y-1">
-                    {app.routes
-                      .filter(route => route.path !== '/tv-shows/show/:slug')
-                      .map((route) => {
-                        const Icon = getIcon(route.icon || 'Home');
-                        return (
-                          <Link
-                            key={route.path}
-                            to={route.path}
-                            title={isCollapsed && !isMobile ? route.name : undefined}
-                            className={cn(
-                              "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
-                              location.pathname === route.path
-                                ? `bg-${app.color}-100 text-${app.color}-700 dark:bg-${app.color}-900 dark:text-${app.color}-300`
-                                : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
-                              isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
-                            )}
-                          >
-                            <Icon className="w-4 h-4 flex-shrink-0" />
-                            {(!isCollapsed || isMobile) && <span>{route.name}</span>}
-                          </Link>
-                        );
-                      })}
-                  </div>
+                  </button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="space-y-1">
+                  <Link
+                    to="/public/shows"
+                    title={isCollapsed && !isMobile ? "Public Shows" : undefined}
+                    className={cn(
+                      "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                      location.pathname === '/public/shows'
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                      isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                    )}
+                  >
+                    <Tv className="w-4 h-4 flex-shrink-0" />
+                    {(!isCollapsed || isMobile) && <span>Public Shows</span>}
+                  </Link>
+                  
+                  <Link
+                    to="/public/universes"
+                    title={isCollapsed && !isMobile ? "Public Universes" : undefined}
+                    className={cn(
+                      "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                      location.pathname === '/public/universes'
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                        : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                      isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                    )}
+                  >
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    {(!isCollapsed || isMobile) && <span>Public Universes</span>}
+                  </Link>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* TV Shows Section with Full Navigation */}
+            {(user || (!user && settings.enabledApps.tvShows)) && (
+              <Collapsible 
+                open={isCollapsed && !isMobile ? true : openSections['tv-shows']}
+                onOpenChange={() => toggleSection('tv-shows')}
+              >
+                <div className="space-y-1">
+                  <CollapsibleTrigger asChild>
+                    <button 
+                      className={cn(
+                        "w-full flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+                      )}
+                      disabled={isCollapsed && !isMobile}
+                    >
+                      <Tv className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && (
+                        <>
+                          <span className="font-medium text-sm flex-1 text-left">TV Shows</span>
+                          {openSections['tv-shows'] ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </>
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-1">
+                    <Link
+                      to="/tv-shows"
+                      title={isCollapsed && !isMobile ? "Dashboard" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/tv-shows'
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Home className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Dashboard</span>}
+                    </Link>
+
+                    {user && (
+                      <>
+                        <Link
+                          to="/tv-shows/my-shows"
+                          title={isCollapsed && !isMobile ? "My Shows" : undefined}
+                          className={cn(
+                            "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                            location.pathname === '/tv-shows/my-shows'
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                              : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                          )}
+                        >
+                          <Heart className="w-4 h-4 flex-shrink-0" />
+                          {(!isCollapsed || isMobile) && <span>My Shows</span>}
+                        </Link>
+
+                        <Link
+                          to="/tv-shows/universes"
+                          title={isCollapsed && !isMobile ? "My Universes" : undefined}
+                          className={cn(
+                            "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                            location.pathname === '/tv-shows/universes'
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                              : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                          )}
+                        >
+                          <Users className="w-4 h-4 flex-shrink-0" />
+                          {(!isCollapsed || isMobile) && <span>My Universes</span>}
+                        </Link>
+
+                        <Link
+                          to="/tv-shows/private-universes"
+                          title={isCollapsed && !isMobile ? "Private Universes" : undefined}
+                          className={cn(
+                            "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                            location.pathname === '/tv-shows/private-universes'
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                              : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                          )}
+                        >
+                          <Lock className="w-4 h-4 flex-shrink-0" />
+                          {(!isCollapsed || isMobile) && <span>Private Universes</span>}
+                        </Link>
+                      </>
+                    )}
+
+                    <Link
+                      to="/tv-shows/public-shows"
+                      title={isCollapsed && !isMobile ? "Public Shows" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/tv-shows/public-shows'
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Globe className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Public Shows</span>}
+                    </Link>
+
+                    <Link
+                      to="/tv-shows/public-universes"
+                      title={isCollapsed && !isMobile ? "Public Universes" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/tv-shows/public-universes'
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Users className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Public Universes</span>}
+                    </Link>
+                  </CollapsibleContent>
                 </div>
-              );
-            }
-            
-            return (
+              </Collapsible>
+            )}
+
+            {/* Other Apps */}
+            {visibleApps.filter(app => app.id !== 'public' && app.id !== 'tv-shows').map((app) => (
               <Collapsible 
                 key={app.id} 
                 open={isCollapsed && !isMobile ? true : openSections[app.id]}
@@ -352,53 +509,28 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                         );
                       })}
 
-                    {/* Add special routes for TV Shows - available to everyone */}
-                    {app.id === 'tv-shows' && (
-                      <>
-                        {/* Show user-specific TV shows routes only to authenticated users */}
-                        {user && (
-                          <Link
-                            to="/tv-shows/universes"
-                            title={isCollapsed && !isMobile ? "My Universes" : undefined}
-                            className={cn(
-                              "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
-                              location.pathname === '/tv-shows/universes'
-                                ? `bg-${app.color}-100 text-${app.color}-700 dark:bg-${app.color}-900 dark:text-${app.color}-300`
-                                : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
-                              isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
-                            )}
-                          >
-                            <Users className="w-4 h-4 flex-shrink-0" />
-                            {(!isCollapsed || isMobile) && <span>My Universes</span>}
-                          </Link>
-                        )}
-                      </>
-                    )}
-
                     {/* Add additional routes for Finance - only for authenticated users */}
                     {app.id === 'finance' && user && (
-                      <>
-                        <Link
-                          to="/finance/credits"
-                          title={isCollapsed && !isMobile ? "Credits" : undefined}
-                          className={cn(
-                            "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
-                            location.pathname === '/finance/credits'
-                              ? `bg-${app.color}-100 text-${app.color}-700 dark:bg-${app.color}-900 dark:text-${app.color}-300`
-                              : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
-                            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
-                          )}
-                        >
-                          <CreditCard className="w-4 h-4 flex-shrink-0" />
-                          {(!isCollapsed || isMobile) && <span>Credits</span>}
-                        </Link>
-                      </>
+                      <Link
+                        to="/finance/credits"
+                        title={isCollapsed && !isMobile ? "Credits" : undefined}
+                        className={cn(
+                          "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                          location.pathname === '/finance/credits'
+                            ? `bg-${app.color}-100 text-${app.color}-700 dark:bg-${app.color}-900 dark:text-${app.color}-300`
+                            : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                          isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                        )}
+                      >
+                        <CreditCard className="w-4 h-4 flex-shrink-0" />
+                        {(!isCollapsed || isMobile) && <span>Credits</span>}
+                      </Link>
                     )}
                   </CollapsibleContent>
                 </div>
               </Collapsible>
-            )
-          })
+            ))}
+          </>
         )}
       </nav>
 
@@ -470,6 +602,69 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
           )}
         </div>
       )}
+
+      {/* Footer Links in Sidebar */}
+      <div className="p-3 lg:p-4 border-t border-purple-200 dark:border-purple-700 space-y-1">
+        {!user && (
+          <>
+            <Link
+              to="/login"
+              title={isCollapsed && !isMobile ? "Sign In" : undefined}
+              className={cn(
+                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+                isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+              )}
+            >
+              <LogIn className="w-4 h-4 flex-shrink-0" />
+              {(!isCollapsed || isMobile) && <span>Sign In</span>}
+            </Link>
+            <Link
+              to="/signup"
+              title={isCollapsed && !isMobile ? "Sign Up" : undefined}
+              className={cn(
+                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+                isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+              )}
+            >
+              <UserPlus className="w-4 h-4 flex-shrink-0" />
+              {(!isCollapsed || isMobile) && <span>Sign Up</span>}
+            </Link>
+          </>
+        )}
+        <Link
+          to="/privacy-policy"
+          title={isCollapsed && !isMobile ? "Privacy Policy" : undefined}
+          className={cn(
+            "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+          )}
+        >
+          <Shield className="w-4 h-4 flex-shrink-0" />
+          {(!isCollapsed || isMobile) && <span>Privacy Policy</span>}
+        </Link>
+        <Link
+          to="/terms-of-service"
+          title={isCollapsed && !isMobile ? "Terms of Service" : undefined}
+          className={cn(
+            "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+          )}
+        >
+          <FileText className="w-4 h-4 flex-shrink-0" />
+          {(!isCollapsed || isMobile) && <span>Terms of Service</span>}
+        </Link>
+        <Link
+          to="/sitemap"
+          title={isCollapsed && !isMobile ? "Sitemap" : undefined}
+          className={cn(
+            "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+          )}
+        >
+          <Map className="w-4 h-4 flex-shrink-0" />
+          {(!isCollapsed || isMobile) && <span>Sitemap</span>}
+        </Link>
+      </div>
     </div>
   );
 };

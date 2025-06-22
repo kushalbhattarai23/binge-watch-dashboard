@@ -14,12 +14,15 @@ export const AppLayout: React.FC = () => {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header />
-          <main className="flex-1 p-3 pt-20 md:pt-3 sm:p-4 sm:pt-20 lg:pt-20 lg:p-6 overflow-auto pb-32 md:pb-0">
+          <main className="flex-1 p-3 pt-20 md:pt-20 sm:p-4 sm:pt-20 lg:pt-20 lg:p-6 overflow-auto pb-32 md:pb-0">
             <Outlet />
           </main>
         </div>
       </div>
-      <Footer />
+      {/* Hide footer on mobile */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
       <SecondaryBottomNavigation />
       <BottomNavigation />
     </div>
