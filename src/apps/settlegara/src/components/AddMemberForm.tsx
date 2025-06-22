@@ -44,13 +44,17 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ networkId, onClose
 
   const createNotification = async (userEmail: string, networkName: string) => {
     try {
-      const { error } = await supabase.rpc('create_notification', {
-        p_user_email: userEmail,
-        p_title: 'Added to Network',
-        p_message: `You have been added to the network "${networkName}"`,
-        p_type: 'member_added',
-        p_network_id: networkId
-      });
+      // Use direct table insert instead of RPC
+      const { error } = await supabase
+        .from('settlegara_notifications')
+        .insert({
+          user_email: userEmail,
+          title: 'Added to Network',
+          message: `You have been added to the network "${networkName}"`,
+          type: 'member_added',
+          network_id: networkId,
+          read: false
+        });
       
       if (error) {
         console.error('Error creating notification:', error);

@@ -8,6 +8,7 @@ import { getEnabledApps } from '@/config/apps';
 
 const defaultAppSettings = {
   enabledApps: {
+    public: true,
     finance: true,
     tvShows: true,
     settlebill: true,

@@ -21,11 +21,11 @@ export const useNotifications = () => {
     queryFn: async () => {
       console.log('Fetching SettleGara notifications...');
       
-      // Use raw query to avoid type issues
+      // Use direct table query instead of RPC
       const { data, error } = await supabase
-        .rpc('select', {
-          query: `SELECT * FROM settlegara_notifications ORDER BY created_at DESC`
-        });
+        .from('settlegara_notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching notifications:', error);
@@ -44,9 +44,11 @@ export const useMarkNotificationAsRead = () => {
   return useMutation({
     mutationFn: async (notificationId: string) => {
       const { data, error } = await supabase
-        .rpc('update_notification_read_status', {
-          notification_id: notificationId
-        });
+        .from('settlegara_notifications')
+        .update({ read: true, updated_at: new Date().toISOString() })
+        .eq('id', notificationId)
+        .select()
+        .single();
       
       if (error) throw error;
       return data;
@@ -61,11 +63,13 @@ export const useUnreadNotificationsCount = () => {
   return useQuery({
     queryKey: ['settlegara-notifications-unread-count'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('get_unread_notifications_count');
+      const { count, error } = await supabase
+        .from('settlegara_notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('read', false);
       
       if (error) throw error;
-      return data || 0;
+      return count || 0;
     },
   });
 };
