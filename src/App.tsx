@@ -99,16 +99,20 @@ function App() {
                 {/* Public routes */}
                 <Route path="public/shows" element={<PublicShows />} />
                 <Route path="public/shows/:slug" element={<PublicShowDetail />} />
+                <Route path="public/show/:slug" element={<PublicShowDetail />} />
                 <Route path="public/universes" element={<PublicUniverses />} />
                 <Route path="public/universes/:slug" element={<PublicUniverseDetail />} />
+                <Route path="public/universe/:slug" element={<PublicUniverseDetail />} />
                 
                 {/* Finance routes */}
                 <Route path="finance" element={<FinanceDashboard />} />
                 <Route path="finance/transactions" element={<FinanceTransactions />} />
                 <Route path="finance/wallets" element={<FinanceWallets />} />
                 <Route path="finance/wallets/:id" element={<FinanceWalletDetail />} />
+                <Route path="finance/wallet/:id" element={<FinanceWalletDetail />} />
                 <Route path="finance/categories" element={<FinanceCategories />} />
                 <Route path="finance/categories/:id" element={<FinanceCategoryDetail />} />
+                <Route path="finance/category/:id" element={<FinanceCategoryDetail />} />
                 <Route path="finance/transfers" element={<FinanceTransfers />} />
                 <Route path="finance/budgets" element={<FinanceBudgets />} />
                 <Route path="finance/reports" element={<FinanceReports />} />
@@ -124,6 +128,7 @@ function App() {
                 <Route path="tv-shows/show/:slug" element={<ShowDetail />} />
                 <Route path="tv-shows/universes" element={<Universes />} />
                 <Route path="tv-shows/universes/:slug" element={<UniverseDetail />} />
+                <Route path="tv-shows/universe/:slug" element={<UniverseDetail />} />
                 <Route path="tv-shows/universes/:slug/dashboard" element={<UniverseDashboard />} />
 
                 {/* SettleBill routes - All handled by SettleBillApp */}
