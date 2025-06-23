@@ -107,7 +107,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
       const splitTotal = getTotalSplitAmount();
       
       if (Math.abs(totalAmount - splitTotal) > 0.01) {
-        setError(`Split amounts (${splitTotal.toFixed(2)}) must equal total amount (${totalAmount.toFixed(2)})`);
+        setError(`Split amounts ($${splitTotal.toFixed(2)}) must equal total amount ($${totalAmount.toFixed(2)})`);
         return;
       }
 
@@ -145,7 +145,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -153,7 +153,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         </Alert>
       )}
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div className="grid gap-4">
           <div className="space-y-2">
             <Label htmlFor="title">Bill Title *</Label>
@@ -164,6 +164,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               placeholder="e.g., Dinner at Restaurant"
               required
               disabled={createBillMutation.isPending}
+              className="w-full"
             />
           </div>
           
@@ -176,6 +177,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               placeholder="Additional details about the bill..."
               rows={3}
               disabled={createBillMutation.isPending}
+              className="w-full resize-none"
             />
           </div>
 
@@ -187,7 +189,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                 onValueChange={setSelectedNetwork}
                 disabled={createBillMutation.isPending || !!selectedNetworkId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a network" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,17 +204,21 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
 
             <div className="space-y-2">
               <Label htmlFor="total_amount">Total Amount *</Label>
-              <Input
-                id="total_amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.total_amount}
-                onChange={(e) => handleTotalAmountChange(e.target.value)}
-                placeholder="0.00"
-                required
-                disabled={createBillMutation.isPending}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <Input
+                  id="total_amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.total_amount}
+                  onChange={(e) => handleTotalAmountChange(e.target.value)}
+                  placeholder="0.00"
+                  required
+                  disabled={createBillMutation.isPending}
+                  className="pl-8 w-full"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -220,21 +226,21 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         {selectedNetwork && members && members.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="w-5 h-5" />
                 Split Between Members
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 md:space-y-4">
               {memberSplits.map((split) => (
-                <div key={split.memberId} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={split.memberId} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg space-y-2 sm:space-y-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
                       <span className="text-sm font-medium text-teal-600">
                         {split.memberName.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="font-medium">{split.memberName}</span>
+                    <span className="font-medium text-sm md:text-base">{split.memberName}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-500" />
@@ -244,7 +250,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                       min="0"
                       value={split.amount}
                       onChange={(e) => handleMemberAmountChange(split.memberId, e.target.value)}
-                      className="w-24"
+                      className="w-20 sm:w-24"
                       disabled={createBillMutation.isPending}
                     />
                   </div>
@@ -252,8 +258,8 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               ))}
               
               <div className="flex justify-between items-center pt-3 border-t">
-                <span className="font-medium">Total Split Amount:</span>
-                <span className={`font-bold ${Math.abs(parseFloat(formData.total_amount) - getTotalSplitAmount()) > 0.01 ? 'text-red-600' : 'text-teal-600'}`}>
+                <span className="font-medium text-sm md:text-base">Total Split Amount:</span>
+                <span className={`font-bold text-sm md:text-base ${Math.abs(parseFloat(formData.total_amount) - getTotalSplitAmount()) > 0.01 ? 'text-red-600' : 'text-teal-600'}`}>
                   ${getTotalSplitAmount().toFixed(2)}
                 </span>
               </div>
