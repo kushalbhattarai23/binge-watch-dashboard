@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import AppSelector from '@/components/AppSelector';
-import MoviesApp from '@/apps/movies/src/pages/MoviesApp';
+import { MoviesApp } from '@/apps/movies/src/pages/MoviesApp';
 import SettleGaraApp from '@/apps/settlegara/src/pages/SettleGaraApp';
-import SettleBillApp from '@/apps/settlebill/src/pages/SettleBillApp';
+import { SettleBillApp } from '@/apps/settlebill/src/pages/SettleBillApp';
 import FinanceDashboard from '@/apps/finance/pages/Dashboard';
 import TvShowsDashboard from '@/apps/tv-shows/pages/Dashboard';
 import { Helmet } from 'react-helmet-async';
