@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
 import { useCreateBill } from '@/hooks/useSettleGaraBills';
-import { AlertCircle, Users, DollarSign } from 'lucide-react';
+import { AlertCircle, Users, DollarSign, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BillFormProps {
@@ -35,7 +35,8 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
     description: '',
     total_amount: '',
     currency: 'USD',
-    network_id: selectedNetworkId || ''
+    network_id: selectedNetworkId || '',
+    paid_by: ''
   });
   
   const [memberSplits, setMemberSplits] = useState<MemberSplit[]>([]);
@@ -55,7 +56,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
 
   // Update network in form data when selected network changes
   useEffect(() => {
-    setFormData(prev => ({ ...prev, network_id: selectedNetwork }));
+    setFormData(prev => ({ ...prev, network_id: selectedNetwork, paid_by: '' }));
   }, [selectedNetwork]);
 
   const handleTotalAmountChange = (value: string) => {
@@ -103,6 +104,11 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         return;
       }
 
+      if (!formData.paid_by) {
+        setError('Please select who paid the bill');
+        return;
+      }
+
       const totalAmount = parseFloat(formData.total_amount);
       const splitTotal = getTotalSplitAmount();
       
@@ -117,7 +123,8 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         description: formData.description || null,
         total_amount: totalAmount,
         currency: formData.currency,
-        status: 'active'
+        status: 'active',
+        paid_by: formData.paid_by
       };
 
       const splits = memberSplits
@@ -133,7 +140,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
       });
 
       toast.success('Bill created successfully!');
-      setFormData({ title: '', description: '', total_amount: '', currency: 'USD', network_id: selectedNetworkId || '' });
+      setFormData({ title: '', description: '', total_amount: '', currency: 'USD', network_id: selectedNetworkId || '', paid_by: '' });
       setMemberSplits([]);
       onSuccess?.();
       
@@ -221,6 +228,31 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               </div>
             </div>
           </div>
+
+          {selectedNetwork && members && members.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="paid_by">Paid By *</Label>
+              <Select
+                value={formData.paid_by}
+                onValueChange={(value) => setFormData({ ...formData, paid_by: value })}
+                disabled={createBillMutation.isPending}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select who paid the bill" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {member.user_name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {selectedNetwork && members && members.length > 0 && (
@@ -270,7 +302,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         <div className="flex flex-col sm:flex-row gap-2 pt-4">
           <Button 
             type="submit"
-            disabled={createBillMutation.isPending || !formData.title.trim() || !selectedNetwork}
+            disabled={createBillMutation.isPending || !formData.title.trim() || !selectedNetwork || !formData.paid_by}
             className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
             {createBillMutation.isPending ? 'Creating Bill...' : 'Create Bill'}
