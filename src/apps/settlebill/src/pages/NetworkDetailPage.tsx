@@ -93,6 +93,7 @@ export const NetworkDetailPage: React.FC = () => {
         {showAddMember && (
           <AddMemberForm 
             networkId={id || ''}
+            networkName={network.name}
             onClose={() => setShowAddMember(false)}
             onSuccess={() => {
               // Refresh members list
