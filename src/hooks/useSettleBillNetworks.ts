@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -168,13 +167,19 @@ export const useAddNetworkMember = () => {
   
   return useMutation({
     mutationFn: async (member: Omit<NetworkMember, 'id' | 'joined_at'>) => {
+      console.log('Adding network member...', member);
       const { data, error } = await supabase
         .from('settlegara_network_members')
         .insert(member)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding network member:', error);
+        throw error;
+      }
+      
+      console.log('Network member added successfully:', data);
       return data;
     },
     onSuccess: (data) => {
