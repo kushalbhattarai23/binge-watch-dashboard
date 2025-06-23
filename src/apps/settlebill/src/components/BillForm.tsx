@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
+import { useCreateBill } from '@/hooks/useSettleGaraBills';
 import { AlertCircle, Users, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -27,6 +28,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
   const { data: networks } = useNetworks();
   const [selectedNetwork, setSelectedNetwork] = useState(selectedNetworkId || '');
   const { data: members } = useNetworkMembers(selectedNetwork);
+  const createBillMutation = useCreateBill();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -38,7 +40,6 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
   
   const [memberSplits, setMemberSplits] = useState<MemberSplit[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize member splits when network members are loaded
   useEffect(() => {
@@ -85,7 +86,6 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsSubmitting(true);
     
     try {
       if (!formData.title.trim()) {
@@ -111,8 +111,28 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         return;
       }
 
-      // For now, just show success since SettleBill might not have the create bill hook yet
-      toast.success('Bill created successfully (demo)');
+      const billData = {
+        network_id: formData.network_id,
+        title: formData.title,
+        description: formData.description || null,
+        total_amount: totalAmount,
+        currency: formData.currency,
+        status: 'active'
+      };
+
+      const splits = memberSplits
+        .filter(split => split.amount > 0)
+        .map(split => ({
+          member_id: split.memberId,
+          amount: split.amount
+        }));
+
+      await createBillMutation.mutateAsync({
+        bill: billData,
+        splits: splits
+      });
+
+      toast.success('Bill created successfully!');
       setFormData({ title: '', description: '', total_amount: '', currency: 'USD', network_id: selectedNetworkId || '' });
       setMemberSplits([]);
       onSuccess?.();
@@ -121,8 +141,6 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
       console.error('Error creating bill:', error);
       setError(error.message || 'Failed to create bill');
       toast.error('Failed to create bill');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -145,7 +163,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., Dinner at Restaurant"
               required
-              disabled={isSubmitting}
+              disabled={createBillMutation.isPending}
             />
           </div>
           
@@ -157,7 +175,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Additional details about the bill..."
               rows={3}
-              disabled={isSubmitting}
+              disabled={createBillMutation.isPending}
             />
           </div>
 
@@ -167,7 +185,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               <Select
                 value={selectedNetwork}
                 onValueChange={setSelectedNetwork}
-                disabled={isSubmitting || !!selectedNetworkId}
+                disabled={createBillMutation.isPending || !!selectedNetworkId}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a network" />
@@ -193,7 +211,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                 onChange={(e) => handleTotalAmountChange(e.target.value)}
                 placeholder="0.00"
                 required
-                disabled={isSubmitting}
+                disabled={createBillMutation.isPending}
               />
             </div>
           </div>
@@ -227,7 +245,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                       value={split.amount}
                       onChange={(e) => handleMemberAmountChange(split.memberId, e.target.value)}
                       className="w-24"
-                      disabled={isSubmitting}
+                      disabled={createBillMutation.isPending}
                     />
                   </div>
                 </div>
@@ -246,17 +264,17 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         <div className="flex flex-col sm:flex-row gap-2 pt-4">
           <Button 
             type="submit"
-            disabled={isSubmitting || !formData.title.trim() || !selectedNetwork}
+            disabled={createBillMutation.isPending || !formData.title.trim() || !selectedNetwork}
             className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
-            {isSubmitting ? 'Creating Bill...' : 'Create Bill'}
+            {createBillMutation.isPending ? 'Creating Bill...' : 'Create Bill'}
           </Button>
           <Button 
             type="button" 
             variant="outline" 
             onClick={onClose} 
             className="flex-1"
-            disabled={isSubmitting}
+            disabled={createBillMutation.isPending}
           >
             Cancel
           </Button>
