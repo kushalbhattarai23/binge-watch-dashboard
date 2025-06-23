@@ -27,8 +27,6 @@ const Index = () => {
     switch (selectedApp) {
       case 'movies':
         return user ? <MoviesApp /> : null;
-      case 'settlegara':
-        return user ? <SettleGaraApp /> : null;
       case 'settlebill':
         return user ? <SettleBillApp /> : null;
       case 'finance':
