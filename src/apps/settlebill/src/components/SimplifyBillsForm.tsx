@@ -1,36 +1,99 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue }
-
- from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useNetworks } from '@/hooks/useSettleGaraNetworks';
+import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
 import { useBills } from '@/hooks/useSettleGaraBills';
+import { useBillSplits } from '@/hooks/useSettleGaraBillSplits';
 import { Calculator, ArrowRight, Users } from 'lucide-react';
+
+interface SimplifiedPayment {
+  from: string;
+  to: string;
+  amount: number;
+  fromName: string;
+  toName: string;
+}
 
 export const SimplifyBillsForm: React.FC = () => {
   const { data: networks } = useNetworks();
   const { data: bills } = useBills();
   const [selectedNetwork, setSelectedNetwork] = useState<string>('');
-  const [simplifiedResults, setSimplifiedResults] = useState<any[]>([]);
+  const [simplifiedResults, setSimplifiedResults] = useState<SimplifiedPayment[]>([]);
+  const { data: members } = useNetworkMembers(selectedNetwork);
 
-  const handleSimplify = () => {
-    if (!selectedNetwork) return;
+  const handleSimplify = async () => {
+    if (!selectedNetwork || !members) return;
 
     // Filter bills for selected network
-    const networkBills = bills?.filter(bill => bill.network_id === selectedNetwork) || [];
+    const networkBills = bills?.filter(bill => bill.network_id === selectedNetwork && bill.status === 'pending') || [];
     
-    // Simple calculation - in a real app, this would be more complex
-    const mockResults = [
-      { from: 'Alice', to: 'Bob', amount: 25.50 },
-      { from: 'Charlie', to: 'Bob', amount: 15.75 },
-      { from: 'Alice', to: 'David', amount: 10.25 },
-    ];
+    // Calculate net balances for each member
+    const balances: { [memberId: string]: number } = {};
     
-    setSimplifiedResults(mockResults);
+    // Initialize balances
+    members.forEach(member => {
+      balances[member.id] = 0;
+    });
+
+    // Calculate balances from bill splits
+    for (const bill of networkBills) {
+      try {
+        const { data: splits } = await useBillSplits(bill.id);
+        if (splits) {
+          splits.forEach(split => {
+            if (split.status === 'unpaid') {
+              balances[split.member_id] = (balances[split.member_id] || 0) - Number(split.amount);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching splits for bill:', bill.id, error);
+      }
+    }
+
+    // Create simplified payments
+    const creditors = Object.entries(balances).filter(([_, balance]) => balance > 0);
+    const debtors = Object.entries(balances).filter(([_, balance]) => balance < 0);
+    
+    const payments: SimplifiedPayment[] = [];
+    
+    // Simple algorithm to minimize transactions
+    let creditorIndex = 0;
+    let debtorIndex = 0;
+    
+    while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
+      const [creditorId, creditAmount] = creditors[creditorIndex];
+      const [debtorId, debtAmount] = debtors[debtorIndex];
+      
+      const creditorMember = members.find(m => m.id === creditorId);
+      const debtorMember = members.find(m => m.id === debtorId);
+      
+      const settlementAmount = Math.min(creditAmount, Math.abs(debtAmount));
+      
+      if (settlementAmount > 0.01 && creditorMember && debtorMember) {
+        payments.push({
+          from: debtorId,
+          to: creditorId,
+          amount: settlementAmount,
+          fromName: debtorMember.user_name,
+          toName: creditorMember.user_name
+        });
+        
+        creditors[creditorIndex][1] -= settlementAmount;
+        debtors[debtorIndex][1] += settlementAmount;
+        
+        if (creditors[creditorIndex][1] <= 0.01) creditorIndex++;
+        if (Math.abs(debtors[debtorIndex][1]) <= 0.01) debtorIndex++;
+      } else {
+        break;
+      }
+    }
+    
+    setSimplifiedResults(payments);
   };
 
   return (
@@ -79,11 +142,11 @@ export const SimplifyBillsForm: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               {simplifiedResults.map((result, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg space-y-2 sm:space-y-0">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline">{result.from}</Badge>
+                    <Badge variant="outline" className="text-xs">{result.fromName}</Badge>
                     <ArrowRight className="w-4 h-4 text-gray-400" />
-                    <Badge variant="outline">{result.to}</Badge>
+                    <Badge variant="outline" className="text-xs">{result.toName}</Badge>
                   </div>
                   <div className="text-lg font-semibold text-green-600">
                     ${result.amount.toFixed(2)}
@@ -93,7 +156,7 @@ export const SimplifyBillsForm: React.FC = () => {
             </div>
             <div className="mt-4 p-3 bg-green-50 rounded-lg">
               <p className="text-sm text-green-800">
-                <strong>Optimization:</strong> Reduced from multiple transactions to just {simplifiedResults.length} payments!
+                <strong>Optimization:</strong> Reduced to just {simplifiedResults.length} payment{simplifiedResults.length !== 1 ? 's' : ''} to settle all debts!
               </p>
             </div>
           </CardContent>

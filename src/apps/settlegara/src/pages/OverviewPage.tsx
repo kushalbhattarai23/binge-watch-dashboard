@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNetworks } from '@/hooks/useSettleGaraNetworks';
 import { useBills } from '@/hooks/useSettleGaraBills';
-import { Users, Receipt, DollarSign, TrendingUp, Plus, Calculator } from 'lucide-react';
+import { useUserBalances } from '@/hooks/useUserBalances';
+import { Users, Receipt, DollarSign, TrendingUp, TrendingDown, Plus, Calculator } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const OverviewPage: React.FC = () => {
   const { data: networks, isLoading: networksLoading } = useNetworks();
   const { data: bills, isLoading: billsLoading } = useBills();
+  const { data: balances } = useUserBalances();
 
   const totalNetworks = networks?.length || 0;
   const totalBills = bills?.length || 0;
@@ -27,7 +29,7 @@ export const OverviewPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Networks</CardTitle>
@@ -76,6 +78,32 @@ export const OverviewPage: React.FC = () => {
             <div className="text-2xl font-bold">${totalAmount.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               All bills combined
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">You Owe</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">${(balances?.totalOwing || 0).toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              Outstanding debt
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Owed to You</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">${(balances?.totalOwed || 0).toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              Money owed to you
             </p>
           </CardContent>
         </Card>
