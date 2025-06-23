@@ -3,15 +3,13 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, Tv, DollarSign, Film, Receipt, Calculator } from 'lucide-react';
+import { LogOut, Tv, DollarSign, Film, Receipt, Calculator, Globe } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
-
-  if (!user) return null;
 
   const getInitials = (email: string) => {
     return email?.charAt(0)?.toUpperCase() || 'U';
@@ -25,12 +23,16 @@ export const Header: React.FC = () => {
     }
   };
 
-  const quickLinks = [
+  // Define quick links based on user authentication
+  const quickLinks = user ? [
     { path: '/tv-shows', icon: Tv, label: 'TV Shows', color: 'purple' },
     { path: '/finance', icon: DollarSign, label: 'Finance', color: 'green' },
     { path: '/movies', icon: Film, label: 'Movies', color: 'blue' },
     { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'indigo' },
     { path: '/settlegara', icon: Calculator, label: 'SettleGara', color: 'orange' },
+  ] : [
+    { path: '/public/universes', icon: Globe, label: 'Public Universes', color: 'blue' },
+    { path: '/public/shows', icon: Tv, label: 'Public Shows', color: 'purple' },
   ];
 
   return (
@@ -65,24 +67,37 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {getInitials(user.email || '')}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium hidden sm:inline">{user.email}</span>
-          </div>
+          {user ? (
+            <>
+              <div className="flex items-center space-x-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getInitials(user.email || '')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium hidden sm:inline">{user.email}</span>
+              </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="sr-only">Logout</span>
-          </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Logout</span>
+              </Button>
+            </>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">Sign In</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                <Link to="/signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>

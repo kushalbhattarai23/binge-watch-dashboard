@@ -9,12 +9,6 @@ export const Footer: React.FC = () => {
   const { settings } = useAppSettings();
   const enabledApps = getEnabledApps(settings);
 
-  // Add movies to the list
-  const allApps = [
-    { id: 'movies', name: 'Movies', routes: [{ path: '/movies' }] },
-    ...enabledApps
-  ];
-
   return (
     <footer className="bg-purple-100 dark:bg-purple-900/30 border-t border-purple-200 dark:border-purple-700 mt-auto">
       <div className="container mx-auto px-4 py-8">
@@ -58,8 +52,13 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <h3 className="font-semibold">Applications</h3>
             <ul className="space-y-2 text-sm">
-              {allApps.map((app) => (
-                <li key={app.id}>
+              <li key="movies-footer">
+                <Link to="/movies" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Movies
+                </Link>
+              </li>
+              {enabledApps.map((app) => (
+                <li key={`${app.id}-footer`}>
                   <Link 
                     to={app.routes[0]?.path || '#'} 
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -102,10 +101,10 @@ export const Footer: React.FC = () => {
             <Link to="/signup" className="text-muted-foreground hover:text-foreground transition-colors">
               Sign Up
             </Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/terms-of-service" className="text-muted-foreground hover:text-foreground transition-colors">
               Terms of Service
             </Link>
             <Link to="/sitemap" className="text-muted-foreground hover:text-foreground transition-colors">

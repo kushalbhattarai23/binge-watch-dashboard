@@ -9,6 +9,7 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import AuthLayout from '@/components/Layout/AuthLayout';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
+import SignUp from '@/pages/SignUp';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
@@ -70,11 +71,7 @@ function App() {
         <OrganizationProvider>
           <Router>
             <Routes>
-              <Route path="/login" element={
-                <AuthLayout title="Welcome Back" subtitle="Sign in to your TrackerHub account">
-                  <Login />
-                </AuthLayout>
-              } />
+              {/* Auth routes outside of AppLayout */}
               <Route path="/admin/login" element={
                 <AuthLayout title="Admin Access" subtitle="Sign in to the admin dashboard">
                   <AdminLogin />
@@ -86,15 +83,18 @@ function App() {
                 </AuthLayout>
               } />
               <Route path="/landing" element={<Landing />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/sitemap" element={<Sitemap />} />
               
+              {/* All other routes use AppLayout */}
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<Index />} />
+                <Route path="login" element={<Login />} />
+                <Route path="signup" element={<SignUp />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="requests" element={<Requests />} />
+                <Route path="privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="terms-of-service" element={<TermsOfService />} />
+                <Route path="sitemap" element={<Sitemap />} />
                 
                 {/* Public routes */}
                 <Route path="public/shows" element={<PublicShows />} />

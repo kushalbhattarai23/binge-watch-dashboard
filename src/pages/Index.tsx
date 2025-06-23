@@ -8,58 +8,42 @@ import FinanceDashboard from '@/apps/finance/pages/Dashboard';
 import TvShowsDashboard from '@/apps/tv-shows/pages/Dashboard';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
-import LoginForm from '@/components/Auth/LoginForm';
-import SignUpForm from '@/components/Auth/SignUpForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tv, DollarSign, Film, Receipt, LogIn, UserPlus, Calculator } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const { user } = useAuth();
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | null>(null);
 
   const handleAppSelect = (appId: string) => {
     if (!user && (appId === 'movies' || appId === 'finance' || appId === 'settlegara' || appId === 'settlebill' || appId === 'tv-shows')) {
-      setAuthMode('login');
+      // Redirect to login if not authenticated
       return;
     }
     setSelectedApp(appId);
   };
 
-  const handleAuthSuccess = () => {
-    setAuthMode(null);
-    // The app will automatically re-render with user authenticated
-    // and they can access the apps they clicked on
-  };
-
   const renderApp = () => {
-    if (authMode === 'login') {
-      return <LoginForm />;
-    }
-    
-    if (authMode === 'signup') {
-      return <SignUpForm />;
-    }
-
     switch (selectedApp) {
       case 'movies':
-        return user ? <MoviesApp /> : <LoginForm />;
+        return user ? <MoviesApp /> : null;
       case 'settlegara':
-        return user ? <SettleGaraApp /> : <LoginForm />;
+        return user ? <SettleGaraApp /> : null;
       case 'settlebill':
-        return user ? <SettleBillApp /> : <LoginForm />;
+        return user ? <SettleBillApp /> : null;
       case 'finance':
-        return user ? <FinanceDashboard /> : <LoginForm />;
+        return user ? <FinanceDashboard /> : null;
       case 'tv-shows':
-        return user ? <TvShowsDashboard /> : <LoginForm />;
+        return user ? <TvShowsDashboard /> : null;
       default:
         return <AppSelector onAppSelect={handleAppSelect} />;
     }
   };
 
   const renderHomeContent = () => {
-    if (selectedApp || authMode) {
+    if (selectedApp) {
       return renderApp();
     }
 
@@ -89,22 +73,17 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  onClick={() => setAuthMode('login')} 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  size="lg"
-                >
-                  <LogIn className="mr-2 h-5 w-5" />
-                  Sign In
+                <Button asChild className="w-full bg-green-600 hover:bg-green-700" size="lg">
+                  <Link to="/login">
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Sign In
+                  </Link>
                 </Button>
-                <Button 
-                  onClick={() => setAuthMode('signup')} 
-                  variant="outline" 
-                  className="w-full border-2 border-purple-200 hover:bg-purple-50"
-                  size="lg"
-                >
-                  <UserPlus className="mr-2 h-5 w-5" />
-                  Create Account
+                <Button asChild variant="outline" className="w-full border-2 border-purple-200 hover:bg-purple-50" size="lg">
+                  <Link to="/signup">
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Create Account
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
