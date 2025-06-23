@@ -64,9 +64,9 @@ export const SimplifyBillsForm: React.FC = () => {
     console.log('Starting debt simplification process...');
 
     try {
-      // Call the database function
+      // Call the database function using raw SQL approach
       const { data: functionResult, error: functionError } = await supabase
-        .rpc('simplify_network_settlements', { network_uuid: selectedNetwork });
+        .rpc('simplify_network_settlements' as any, { network_uuid: selectedNetwork });
 
       if (functionError) {
         console.error('Database function error:', functionError);
@@ -77,12 +77,12 @@ export const SimplifyBillsForm: React.FC = () => {
 
       console.log('Database function result:', functionResult);
       
-      if (functionResult && functionResult.length > 0) {
+      if (functionResult && Array.isArray(functionResult) && functionResult.length > 0) {
         // Store the raw database results
-        setNetworkSettlements(functionResult);
+        setNetworkSettlements(functionResult as NetworkSettlement[]);
         
         // Convert to the existing format for backward compatibility
-        const convertedResults = functionResult.map((result: NetworkSettlement) => ({
+        const convertedResults = (functionResult as NetworkSettlement[]).map((result: NetworkSettlement) => ({
           from: result.from_member,
           to: result.to_member,
           amount: Number(result.amount),
