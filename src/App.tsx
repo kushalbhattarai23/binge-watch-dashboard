@@ -48,10 +48,10 @@ import UniverseDetail from '@/apps/tv-shows/pages/UniverseDetail';
 import UniverseDashboard from '@/apps/tv-shows/pages/UniverseDashboard';
 
 // SettleBill App
-import SettleBillApp from '@/apps/settlebill/src/pages/SettleBillApp';
+import { SettleBillApp } from '@/apps/settlebill/src/pages/SettleBillApp';
 
 // Movies App  
-import MoviesApp from '@/apps/movies/src/pages/MoviesApp';
+import { MoviesApp } from '@/apps/movies/src/pages/MoviesApp';
 
 // Admin Pages
 import AdminDashboard from '@/apps/admin/pages/Dashboard';
@@ -87,8 +87,16 @@ function App() {
               {/* All other routes use AppLayout */}
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<Index />} />
-                <Route path="login" element={<Login />} />
-                <Route path="signup" element={<SignUp />} />
+                <Route path="login" element={
+                  <AuthLayout title="Welcome Back" subtitle="Sign in to your TrackerHub account">
+                    <Login />
+                  </AuthLayout>
+                } />
+                <Route path="signup" element={
+                  <AuthLayout title="Create Account" subtitle="Join TrackerHub today">
+                    <SignUp />
+                  </AuthLayout>
+                } />
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="requests" element={<Requests />} />

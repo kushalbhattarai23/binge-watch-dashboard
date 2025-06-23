@@ -1231,6 +1231,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_member: {
+        Args: { network: string; email: string }
+        Returns: boolean
+      }
+      is_network_admin: {
+        Args: { network: string; email: string }
+        Returns: boolean
+      }
+      is_network_creator: {
+        Args: { network: string; uid: string }
+        Returns: boolean
+      }
       update_user_show_episode_counts: {
         Args: { p_user_id: string; p_show_id: string }
         Returns: undefined
