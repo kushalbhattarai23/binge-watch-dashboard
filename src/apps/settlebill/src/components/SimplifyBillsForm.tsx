@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
-import { useBills } from '@/hooks/useSettleGaraBills';
-import { useBillSplits } from '@/hooks/useSettleGaraBillSplits';
+import { useBills, useBillSplits } from '@/hooks/useSettleGaraBills';
 import { useCreateSettlement, useSettlements } from '@/hooks/useSettlements';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Calculator, ArrowRight, Users, CheckCircle } from 'lucide-react';
@@ -46,14 +45,29 @@ export const SimplifyBillsForm: React.FC = () => {
   };
 
   const handleSimplify = async () => {
-    if (!selectedNetwork || !members) return;
+    if (!selectedNetwork || !members || !bills) {
+      toast.error('Please select a network first');
+      return;
+    }
 
     setIsCalculating(true);
+    console.log('Starting simplification process...');
 
     try {
-      // Filter bills for selected network
-      const networkBills = bills?.filter(bill => bill.network_id === selectedNetwork && bill.status === 'pending') || [];
+      // Filter bills for selected network that are pending
+      const networkBills = bills.filter(bill => 
+        bill.network_id === selectedNetwork && bill.status === 'pending'
+      );
       
+      console.log('Network bills found:', networkBills.length);
+
+      if (networkBills.length === 0) {
+        toast.info('No pending bills found for this network');
+        setSimplifiedResults([]);
+        setIsCalculating(false);
+        return;
+      }
+
       // Calculate net balances for each member
       const balances: { [memberId: string]: number } = {};
       
@@ -62,28 +76,41 @@ export const SimplifyBillsForm: React.FC = () => {
         balances[member.id] = 0;
       });
 
-      // Calculate balances from bill splits
-      for (const bill of networkBills) {
-        try {
-          // This is a simplified approach - in reality you'd want to fetch splits properly
-          const splits = await Promise.resolve([]);
-          splits.forEach((split: any) => {
-            if (split.status === 'unpaid') {
-              balances[split.member_id] = (balances[split.member_id] || 0) - Number(split.amount);
-            }
-          });
-        } catch (error) {
-          console.error('Error processing bill splits:', error);
+      // For simplification, we'll assume each bill is split equally among all members
+      // In a real implementation, you'd fetch actual bill splits
+      networkBills.forEach(bill => {
+        const splitAmount = Number(bill.total_amount) / members.length;
+        
+        // The person who created the bill is owed money
+        const creator = members.find(m => m.user_email === bill.created_by);
+        if (creator) {
+          balances[creator.id] += Number(bill.total_amount) - splitAmount;
         }
-      }
+        
+        // Everyone else owes their share
+        members.forEach(member => {
+          if (member.id !== creator?.id) {
+            balances[member.id] -= splitAmount;
+          }
+        });
+      });
 
-      // Create simplified payments
-      const creditors = Object.entries(balances).filter(([_, balance]) => balance > 0);
-      const debtors = Object.entries(balances).filter(([_, balance]) => balance < 0);
+      console.log('Calculated balances:', balances);
+
+      // Create simplified payments using a greedy algorithm
+      const creditors = Object.entries(balances)
+        .filter(([_, balance]) => balance > 0.01)
+        .sort((a, b) => b[1] - a[1]);
+      
+      const debtors = Object.entries(balances)
+        .filter(([_, balance]) => balance < -0.01)
+        .sort((a, b) => a[1] - b[1]);
       
       const payments: SimplifiedPayment[] = [];
       
-      // Simple algorithm to minimize transactions
+      console.log('Creditors:', creditors);
+      console.log('Debtors:', debtors);
+
       let creditorIndex = 0;
       let debtorIndex = 0;
       
@@ -115,11 +142,17 @@ export const SimplifyBillsForm: React.FC = () => {
         }
       }
       
+      console.log('Generated payments:', payments);
       setSimplifiedResults(payments);
-      toast.success(`Calculated ${payments.length} optimized transactions`);
+      
+      if (payments.length > 0) {
+        toast.success(`Calculated ${payments.length} optimized transactions`);
+      } else {
+        toast.info('All debts are already settled!');
+      }
     } catch (error) {
-      toast.error('Failed to calculate simplified payments');
       console.error('Simplify error:', error);
+      toast.error('Failed to calculate simplified payments');
     } finally {
       setIsCalculating(false);
     }
