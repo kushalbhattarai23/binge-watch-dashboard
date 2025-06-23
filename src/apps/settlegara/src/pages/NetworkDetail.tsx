@@ -5,21 +5,44 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNetworkMembers, useNetworks } from '@/hooks/useSettleGaraNetworks';
+import { useNetworkMembers, useNetworks, useRemoveNetworkMember } from '@/hooks/useSettleGaraNetworks';
 import { AddMemberForm } from '../components/AddMemberForm';
 import { Users, UserPlus, ArrowLeft, Settings, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export const NetworkDetail: React.FC = () => {
   const { networkId } = useParams<{ networkId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: networks } = useNetworks();
   const { data: members, isLoading } = useNetworkMembers(networkId || '');
   const [showAddMember, setShowAddMember] = useState(false);
+  const removeNetworkMemberMutation = useRemoveNetworkMember();
 
   const network = networks?.find(n => n.id === networkId);
+  const currentUserMember = members?.find(m => m.user_email === user?.email);
+  const isAdmin = currentUserMember?.role === 'admin';
 
   const handleBack = () => {
     navigate('/settlegara/networks');
+  };
+
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    if (window.confirm(`Are you sure you want to remove ${memberName} from this network?`)) {
+      removeNetworkMemberMutation.mutate(
+        { memberId, networkId: networkId || '' },
+        {
+          onSuccess: () => {
+            toast.success('Member removed successfully');
+          },
+          onError: (error) => {
+            console.error('Error removing member:', error);
+            toast.error('Failed to remove member');
+          }
+        }
+      );
+    }
   };
 
   if (isLoading) {
@@ -43,14 +66,18 @@ export const NetworkDetail: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </Button>
-          <Button onClick={() => setShowAddMember(true)} size="sm">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add Member
-          </Button>
+          {isAdmin && (
+            <>
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+              <Button onClick={() => setShowAddMember(true)} size="sm">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Member
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -84,6 +111,9 @@ export const NetworkDetail: React.FC = () => {
                     <div>
                       <h4 className="font-medium">{member.user_name}</h4>
                       <p className="text-sm text-gray-600">{member.user_email}</p>
+                      {member.nickname && (
+                        <p className="text-xs text-gray-500">"{member.nickname}"</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -93,9 +123,16 @@ export const NetworkDetail: React.FC = () => {
                     <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
                       {member.status}
                     </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                    {isAdmin && member.user_email !== user?.email && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleRemoveMember(member.id, member.user_name)}
+                        disabled={removeNetworkMemberMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

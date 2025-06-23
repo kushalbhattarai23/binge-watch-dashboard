@@ -5,18 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNetworkMembers, useNetworks } from '@/hooks/useSettleBillNetworks';
+import { useNetworkMembers, useNetworks, useRemoveNetworkMember } from '@/hooks/useSettleBillNetworks';
 import { AddMemberForm } from '../components/AddMemberForm';
-import { ArrowLeft, Users, UserPlus, Settings, Trash2, Receipt, Plus } from 'lucide-react';
+import { ArrowLeft, Users, UserPlus, Settings, Trash2, Receipt } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export const NetworkDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: networks } = useNetworks();
   const { data: members, isLoading } = useNetworkMembers(id || '');
   const [showAddMember, setShowAddMember] = useState(false);
+  const removeNetworkMemberMutation = useRemoveNetworkMember();
 
   const network = networks?.find(n => n.id === id);
+  const currentUserMember = members?.find(m => m.user_email === user?.email);
+  const isAdmin = currentUserMember?.role === 'admin';
 
   const handleBack = () => {
     navigate('/settlebill/networks');
@@ -24,6 +30,23 @@ export const NetworkDetailPage: React.FC = () => {
 
   const handleCreateBill = () => {
     navigate(`/settlebill/bills/create?networkId=${id}`);
+  };
+
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    if (window.confirm(`Are you sure you want to remove ${memberName} from this network?`)) {
+      removeNetworkMemberMutation.mutate(
+        { memberId, networkId: id || '' },
+        {
+          onSuccess: () => {
+            toast.success('Member removed successfully');
+          },
+          onError: (error) => {
+            console.error('Error removing member:', error);
+            toast.error('Failed to remove member');
+          }
+        }
+      );
+    }
   };
 
   if (isLoading) {
@@ -52,14 +75,18 @@ export const NetworkDetailPage: React.FC = () => {
               <Receipt className="w-4 h-4 mr-2" />
               Create Bill
             </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-            <Button onClick={() => setShowAddMember(true)} size="sm">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Member
-            </Button>
+            {isAdmin && (
+              <>
+                <Button variant="outline" size="sm">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+                <Button onClick={() => setShowAddMember(true)} size="sm">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add Member
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -102,9 +129,16 @@ export const NetworkDetailPage: React.FC = () => {
                       <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
                         {member.status}
                       </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
+                      {isAdmin && member.user_email !== user?.email && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleRemoveMember(member.id, member.user_name)}
+                          disabled={removeNetworkMemberMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

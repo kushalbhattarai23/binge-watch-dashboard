@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCreateNetwork } from '@/hooks/useSettleGaraNetworks';
-import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,30 +32,7 @@ export const NetworkForm: React.FC<NetworkFormProps> = ({ onClose, onSuccess }) 
     }
 
     createNetworkMutation.mutate(formData, {
-      onSuccess: async (createdNetwork) => {
-        // Get current user info
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          try {
-            // Add the creator as the first member (admin role)
-            await (supabase as any)
-              .from('settlegara_network_members')
-              .insert({
-                network_id: createdNetwork.id,
-                user_email: user.email!,
-                user_name: user.user_metadata?.full_name || user.email!.split('@')[0],
-                role: 'admin',
-                status: 'active'
-              });
-            
-            console.log('Creator added as network member successfully');
-          } catch (memberError) {
-            console.error('Error adding creator as member:', memberError);
-            // Don't fail the whole operation if this fails
-          }
-        }
-
+      onSuccess: () => {
         toast.success('Network created successfully');
         setFormData({ name: '', description: '' });
         onSuccess?.();

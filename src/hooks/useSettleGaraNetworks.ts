@@ -93,8 +93,9 @@ export const useCreateNetwork = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['settlegara-networks'] });
+      queryClient.invalidateQueries({ queryKey: ['settlegara-network-members', data.id] });
     },
   });
 };
@@ -115,6 +116,25 @@ export const useAddNetworkMember = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['settlegara-network-members', variables.network_id] });
+    },
+  });
+};
+
+export const useRemoveNetworkMember = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ memberId, networkId }: { memberId: string; networkId: string }) => {
+      const { error } = await (supabase as any)
+        .from('settlegara_network_members')
+        .delete()
+        .eq('id', memberId);
+      
+      if (error) throw error;
+      return { memberId, networkId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['settlegara-network-members', data.networkId] });
     },
   });
 };

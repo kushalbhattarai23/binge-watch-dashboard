@@ -94,11 +94,29 @@ export const useCreateNetwork = () => {
       }
       
       console.log('SettleBill network created successfully:', data);
+
+      // Add the creator as the first member (admin role)
+      const { error: memberError } = await supabase
+        .from('settlegara_network_members')
+        .insert({
+          network_id: data.id,
+          user_email: user.email!,
+          user_name: user.user_metadata?.full_name || user.email!.split('@')[0],
+          role: 'admin',
+          status: 'active'
+        });
+
+      if (memberError) {
+        console.error('Error adding creator as member:', memberError);
+        // Don't fail the whole operation if this fails
+      }
+
       return data;
     },
     onSuccess: (data) => {
       console.log('SettleBill network creation success, invalidating queries...');
       queryClient.invalidateQueries({ queryKey: ['settlebill-networks'] });
+      queryClient.invalidateQueries({ queryKey: ['settlebill-network-members', data.id] });
     },
     onError: (error) => {
       console.error('SettleBill network creation failed:', error);
