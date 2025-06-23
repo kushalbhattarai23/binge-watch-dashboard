@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useBills } from '@/hooks/useSettleBillBills';
+import { useBills } from '@/hooks/useSettleGaraBills';
 import { useBillSplits } from '@/hooks/useSettleGaraBillSplits';
 import { useNetworkMembers } from '@/hooks/useSettleBillNetworks';
 import { useAuth } from '@/hooks/useAuth';
