@@ -68,6 +68,11 @@ export default {
 					secondary: 'hsl(var(--settlegara-secondary))',
 					accent: 'hsl(var(--settlegara-accent))'
 				},
+				settlebill: {
+					primary: 'hsl(var(--settlebill-primary))',
+					secondary: 'hsl(var(--settlebill-secondary))',
+					accent: 'hsl(var(--settlebill-accent))'
+				},
 				movies: {
 					primary: 'hsl(var(--movies-primary))',
 					secondary: 'hsl(var(--movies-secondary))',

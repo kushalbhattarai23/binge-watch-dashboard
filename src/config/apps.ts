@@ -61,7 +61,7 @@ export const apps: AppConfig[] = [
     name: 'SettleBill',
     description: 'Split bills and manage expenses with friends',
     icon: 'Receipt',
-    color: 'indigo',
+    color: 'rose',
     routes: [
       { path: '/settlebill', name: 'Dashboard' }
     ]

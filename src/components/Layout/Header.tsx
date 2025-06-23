@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, Tv, DollarSign, Film, Receipt, Calculator, Globe } from 'lucide-react';
+import { LogOut, Tv, DollarSign, Film, Receipt, Globe } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -28,8 +28,7 @@ export const Header: React.FC = () => {
     { path: '/tv-shows', icon: Tv, label: 'TV Shows', color: 'purple' },
     { path: '/finance', icon: DollarSign, label: 'Finance', color: 'green' },
     { path: '/movies', icon: Film, label: 'Movies', color: 'blue' },
-    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'indigo' },
-    { path: '/settlegara', icon: Calculator, label: 'SettleGara', color: 'orange' },
+    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'red' },
   ] : [
     { path: '/public/universes', icon: Globe, label: 'Public Universes', color: 'blue' },
     { path: '/public/shows', icon: Tv, label: 'Public Shows', color: 'purple' },
@@ -54,7 +53,9 @@ export const Header: React.FC = () => {
                     size="sm"
                     className={cn(
                       "flex items-center gap-2",
-                      isActive && `bg-${link.color}-600 hover:bg-${link.color}-700 text-white`
+                      link.path === '/settlebill' && isActive && "bg-gradient-to-r from-rose-400 to-red-500 hover:from-rose-500 hover:to-red-600 text-white",
+                      link.path === '/settlebill' && !isActive && "text-rose-600 hover:text-red-700 hover:bg-rose-50",
+                      link.path !== '/settlebill' && isActive && `bg-${link.color}-600 hover:bg-${link.color}-700 text-white`
                     )}
                   >
                     <Icon className="w-4 h-4" />

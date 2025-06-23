@@ -51,6 +51,10 @@
     --settlegara-secondary: 0 70% 95%;
     --settlegara-accent: 0 80% 90%;
     
+    --settlebill-primary: 346 77% 65%;
+    --settlebill-secondary: 30 54% 95%;
+    --settlebill-accent: 346 50% 90%;
+    
     --movies-primary: 220 100% 25%;
     --movies-secondary: 220 30% 95%;
     --movies-accent: 220 50% 90%;
@@ -97,6 +101,10 @@
     --settlegara-primary: 0 84% 65%;
     --settlegara-secondary: 0 30% 15%;
     --settlegara-accent: 0 40% 20%;
+    
+    --settlebill-primary: 346 77% 70%;
+    --settlebill-secondary: 30 30% 15%;
+    --settlebill-accent: 346 40% 20%;
     
     --movies-primary: 220 100% 70%;
     --movies-secondary: 220 30% 15%;
