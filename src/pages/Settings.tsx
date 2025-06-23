@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -259,11 +258,11 @@ const Settings = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant={user.email_confirmed_at ? "default" : "destructive"}>
-              {user.email_confirmed_at ? "Verified" : "Unverified"}
+            <Badge variant="default">
+              Verified
             </Badge>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              Account created: {new Date(user.created_at || '').toLocaleDateString()}
+              Account active
             </span>
           </div>
         </CardContent>

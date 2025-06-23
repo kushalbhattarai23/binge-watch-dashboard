@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -51,7 +50,7 @@ import UniverseDashboard from '@/apps/tv-shows/pages/UniverseDashboard';
 import { SettleBillApp } from '@/apps/settlebill/src/pages/SettleBillApp';
 
 // Movies App  
-import { MoviesApp } from '@/apps/movies/src/pages/MoviesApp';
+import MoviesApp from '@/apps/movies/src/pages/MoviesApp';
 
 // Admin Pages
 import AdminDashboard from '@/apps/admin/pages/Dashboard';
