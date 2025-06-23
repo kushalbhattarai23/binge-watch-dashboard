@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getEnabledApps } from '@/config/apps';
@@ -440,8 +441,102 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
               </Collapsible>
             )}
 
-            {/* Other Apps */}
-            {visibleApps.filter(app => app.id !== 'public' && app.id !== 'tv-shows').map((app) => (
+            {/* SettleBill Section */}
+            {user && settings.enabledApps.settlebill && (
+              <Collapsible 
+                open={isCollapsed && !isMobile ? true : openSections['settlebill']}
+                onOpenChange={() => toggleSection('settlebill')}
+              >
+                <div className="space-y-1">
+                  <CollapsibleTrigger asChild>
+                    <button 
+                      className={cn(
+                        "w-full flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0"
+                      )}
+                      disabled={isCollapsed && !isMobile}
+                    >
+                      <Receipt className="w-5 h-5 text-cyan-500 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && (
+                        <>
+                          <span className="font-medium text-sm flex-1 text-left">SettleBill</span>
+                          {openSections['settlebill'] ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </>
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-1">
+                    <Link
+                      to="/settlebill"
+                      title={isCollapsed && !isMobile ? "Dashboard" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/settlebill' || location.pathname === '/settlebill/'
+                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Home className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Dashboard</span>}
+                    </Link>
+
+                    <Link
+                      to="/settlebill/networks"
+                      title={isCollapsed && !isMobile ? "Networks" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/settlebill/networks'
+                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Users className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Networks</span>}
+                    </Link>
+
+                    <Link
+                      to="/settlebill/bills"
+                      title={isCollapsed && !isMobile ? "Bills" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/settlebill/bills'
+                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Receipt className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Bills</span>}
+                    </Link>
+
+                    <Link
+                      to="/settlebill/simplify"
+                      title={isCollapsed && !isMobile ? "Simplify" : undefined}
+                      className={cn(
+                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                        location.pathname === '/settlebill/simplify'
+                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                      )}
+                    >
+                      <Calculator className="w-4 h-4 flex-shrink-0" />
+                      {(!isCollapsed || isMobile) && <span>Simplify</span>}
+                    </Link>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            )}
+
+            {/* Other Apps (excluding SettleBill since we handled it separately) */}
+            {visibleApps.filter(app => app.id !== 'public' && app.id !== 'tv-shows' && app.id !== 'settlebill').map((app) => (
               <Collapsible 
                 key={app.id} 
                 open={isCollapsed && !isMobile ? true : openSections[app.id]}
@@ -486,7 +581,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                         const Icon = getIcon(route.icon || 'Home');
                         
                         // Show routes only to authenticated users for protected apps
-                        if ((app.id === 'finance' || app.id === 'admin' || app.id === 'settlegara' || app.id === 'movies' || app.id === 'settlebill') && !user) {
+                        if ((app.id === 'finance' || app.id === 'admin' || app.id === 'settlegara' || app.id === 'movies') && !user) {
                           return null;
                         }
                         
