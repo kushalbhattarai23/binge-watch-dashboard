@@ -9,12 +9,14 @@ import { useBills } from '@/hooks/useSettleGaraBills';
 import { useBillSplits } from '@/hooks/useSettleGaraBillSplits';
 import { useNetworkMembers } from '@/hooks/useSettleBillNetworks';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Receipt, DollarSign, Users, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { useCurrency } from '@/hooks/useCurrency';
+import { ArrowLeft, Receipt, Calendar, Edit } from 'lucide-react';
 
 export const BillDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { currency, formatAmount } = useCurrency();
   const { data: bills } = useBills();
   const { data: splits } = useBillSplits(id || '');
   
@@ -23,183 +25,152 @@ export const BillDetailPage: React.FC = () => {
 
   if (!bill) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 p-4 md:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950 p-4 md:p-6">
         <div className="text-center py-8">Bill not found</div>
       </div>
     );
   }
 
-  // Calculate totals and user-specific amounts
   const totalAmount = Number(bill.total_amount);
-  const totalSplitAmount = splits?.reduce((sum, split) => sum + Number(split.amount), 0) || 0;
   const currentUserMember = members?.find(m => m.user_email === user?.email);
-  const currentUserSplit = splits?.find(s => s.member_id === currentUserMember?.id);
-  const currentUserAmount = currentUserSplit ? Number(currentUserSplit.amount) : 0;
-  const currentUserOwes = currentUserSplit?.status === 'unpaid' ? currentUserAmount : 0;
-
-  // Calculate network-wide totals for the current user
-  const allUserSplits = splits?.filter(s => s.member_id === currentUserMember?.id) || [];
-  const totalUserOwes = allUserSplits
-    .filter(s => s.status === 'unpaid')
-    .reduce((sum, split) => sum + Number(split.amount), 0);
 
   const handleBack = () => {
     navigate('/settlebill/bills');
   };
 
+  // Get the person who created/paid the bill
+  const billCreator = members?.find(m => m.user_email === user?.email); // This would need to be improved to get actual creator
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950 p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={handleBack} className="flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">{bill.title}</h1>
-            <p className="text-gray-600 text-sm md:text-base">Bill Details</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{bill.title}</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Added on {new Date(bill.created_at).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
           </div>
+          <Button variant="outline" size="sm">
+            <Edit className="w-4 h-4 mr-2" />
+            Edit expense
+          </Button>
         </div>
 
-        {/* Overview Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-              <Receipt className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl md:text-2xl font-bold">${totalAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Bill total
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Your Share</CardTitle>
-              <Wallet className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl md:text-2xl font-bold">${currentUserAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Your portion
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="sm:col-span-2 lg:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">You Owe</CardTitle>
-              <TrendingUp className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl md:text-2xl font-bold text-red-600">${currentUserOwes.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Outstanding amount
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bill Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
-              <span className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-teal-600" />
-                Bill Information
-              </span>
-              <Badge variant={bill.status === 'settled' ? 'default' : 'destructive'}>
-                {bill.status}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Created Date</p>
-                <p className="text-base md:text-lg">{new Date(bill.created_at).toLocaleDateString()}</p>
+        {/* Bill Amount Card */}
+        <Card className="border border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <Receipt className="w-8 h-8 text-gray-600 dark:text-gray-400" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Currency</p>
-                <p className="text-base md:text-lg">{bill.currency || 'USD'}</p>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {bill.title}
+                </h2>
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                  {formatAmount(totalAmount)}
+                </p>
               </div>
             </div>
-            {bill.description && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Description</p>
-                <p className="text-gray-700 mt-1 text-sm md:text-base">{bill.description}</p>
+          </CardContent>
+        </Card>
+
+        {/* Payment Details */}
+        <Card className="border border-gray-200 dark:border-gray-800">
+          <CardContent className="p-6">
+            {splits && splits.length > 0 ? (
+              <div className="space-y-4">
+                {splits.map((split) => {
+                  const member = members?.find(m => m.id === split.member_id);
+                  const isCurrentUser = member?.user_email === user?.email;
+                  const splitAmount = Number(split.amount);
+                  const isPaid = split.status === 'paid';
+                  
+                  return (
+                    <div key={split.id} className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member?.user_email}`} />
+                          <AvatarFallback className="bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400">
+                            {member?.user_name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">
+                            {member?.user_name} {isPaid ? 'paid' : 'owes'} {formatAmount(splitAmount)}
+                            {!isPaid && (
+                              <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                                and owes {formatAmount(splitAmount)}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {isPaid ? (
+                          <span className="text-green-600 dark:text-green-400 font-medium">
+                            you paid
+                          </span>
+                        ) : (
+                          <span className="text-orange-600 dark:text-orange-400 font-bold">
+                            {formatAmount(splitAmount)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Settlement Status */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+                  <div className="text-center">
+                    <Badge 
+                      variant={bill.status === 'settled' ? 'default' : 'destructive'}
+                      className="text-sm px-4 py-2"
+                    >
+                      {bill.status === 'settled' ? 'Settled' : 'Not settled'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Receipt className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <p className="text-sm md:text-base">No payment details available</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Bill Splits */}
-        <Card>
+        {/* Notes and Comments Section */}
+        <Card className="border border-gray-200 dark:border-gray-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-              <Users className="w-5 h-5 text-teal-600" />
-              Bill Splits
+            <CardTitle className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wide">
+              Notes and Comments
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {splits && splits.length > 0 ? (
-              <div className="space-y-3">
-                {splits.map((split) => {
-                  const member = members?.find(m => m.id === split.member_id);
-                  const isCurrentUser = member?.user_email === user?.email;
-                  return (
-                    <div key={split.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 border rounded-lg bg-white space-y-3 sm:space-y-0">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Avatar className="flex-shrink-0">
-                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member?.user_email}`} />
-                          <AvatarFallback>{member?.user_name.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-medium text-sm md:text-base">
-                            {member?.user_name} {isCurrentUser && '(You)'}
-                          </h4>
-                          <p className="text-xs md:text-sm text-gray-600 truncate">{member?.user_email}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="text-right">
-                          <p className="font-semibold text-base md:text-lg">${Number(split.amount).toFixed(2)}</p>
-                          <p className="text-xs md:text-sm text-gray-500">
-                            {((Number(split.amount) / totalAmount) * 100).toFixed(1)}% of total
-                          </p>
-                        </div>
-                        <Badge variant={split.status === 'paid' ? 'default' : 'destructive'} className="text-xs">
-                          {split.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                <div className="border-t pt-3 mt-4">
-                  <div className="flex justify-between items-center p-3 bg-teal-50 rounded-lg">
-                    <span className="font-semibold text-sm md:text-base">Total Split:</span>
-                    <span className="font-bold text-base md:text-lg">${totalSplitAmount.toFixed(2)}</span>
-                  </div>
-                  {Math.abs(totalSplitAmount - totalAmount) > 0.01 && (
-                    <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg mt-2">
-                      <span className="font-semibold text-amber-700 text-sm md:text-base">Remaining:</span>
-                      <span className="font-bold text-base md:text-lg text-amber-700">
-                        ${(totalAmount - totalSplitAmount).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+            <div className="space-y-4">
+              <textarea
+                placeholder="Add a comment"
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                rows={3}
+              />
+              <div className="flex justify-end">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6">
+                  Post
+                </Button>
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-sm md:text-base">No splits created yet.</p>
-                <p className="text-xs md:text-sm">This bill hasn't been split among members yet.</p>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
