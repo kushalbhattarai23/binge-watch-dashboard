@@ -8,7 +8,7 @@ import { SimplifyBillsForm } from '../components/SimplifyBillsForm';
 
 export const SimplifyPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Link to="/settlebill/networks">
@@ -21,12 +21,12 @@ export const SimplifyPage: React.FC = () => {
         </div>
         
         <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-t-lg">
             <CardTitle className="text-xl flex items-center gap-2">
               <Calculator className="w-5 h-5" />
               Bill Simplification
             </CardTitle>
-            <p className="text-purple-100">Optimize payments and reduce the number of transactions needed</p>
+            <p className="text-emerald-100">Optimize payments and reduce the number of transactions needed</p>
           </CardHeader>
           <CardContent className="p-6">
             <SimplifyBillsForm />

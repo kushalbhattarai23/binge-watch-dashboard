@@ -18,7 +18,7 @@ export const CreateBillPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-teal-50 p-6">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Link to="/settlebill/bills">
@@ -31,9 +31,9 @@ export const CreateBillPage: React.FC = () => {
         </div>
         
         <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-t-lg">
             <CardTitle className="text-xl">Bill Information</CardTitle>
-            <p className="text-blue-100">Add a new expense to split among your network members</p>
+            <p className="text-cyan-100">Add a new expense to split among your network members</p>
           </CardHeader>
           <CardContent className="p-6">
             <BillForm 

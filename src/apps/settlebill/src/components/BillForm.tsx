@@ -211,8 +211,8 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               {memberSplits.map((split) => (
                 <div key={split.memberId} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <span className="text-sm font-medium text-green-600">
+                    <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                      <span className="text-sm font-medium text-teal-600">
                         {split.memberName.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -235,7 +235,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               
               <div className="flex justify-between items-center pt-3 border-t">
                 <span className="font-medium">Total Split Amount:</span>
-                <span className={`font-bold ${Math.abs(parseFloat(formData.total_amount) - getTotalSplitAmount()) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                <span className={`font-bold ${Math.abs(parseFloat(formData.total_amount) - getTotalSplitAmount()) > 0.01 ? 'text-red-600' : 'text-teal-600'}`}>
                   ${getTotalSplitAmount().toFixed(2)}
                 </span>
               </div>
@@ -247,7 +247,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
           <Button 
             type="submit"
             disabled={isSubmitting || !formData.title.trim() || !selectedNetwork}
-            className="flex-1 bg-green-600 hover:bg-green-700"
+            className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
             {isSubmitting ? 'Creating Bill...' : 'Create Bill'}
           </Button>

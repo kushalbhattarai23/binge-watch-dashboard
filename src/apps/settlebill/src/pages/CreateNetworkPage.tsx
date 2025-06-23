@@ -18,7 +18,7 @@ export const CreateNetworkPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Link to="/settlebill/networks">
@@ -31,9 +31,9 @@ export const CreateNetworkPage: React.FC = () => {
         </div>
         
         <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-t-lg">
             <CardTitle className="text-xl">Network Details</CardTitle>
-            <p className="text-green-100">Create a new network to start splitting bills with your group</p>
+            <p className="text-teal-100">Create a new network to start splitting bills with your group</p>
           </CardHeader>
           <CardContent className="p-6">
             <NetworkForm 
