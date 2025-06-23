@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useBills } from '@/hooks/useSettleGaraBills';
-import { useNetworkMembers, useNetworks } from '@/hooks/useSettleBillNetworks';
+import { useNetworks } from '@/hooks/useSettleBillNetworks';
 
 export const SettleBillSettingsPage: React.FC = () => {
   const { currency, updateCurrency } = useCurrency();
@@ -93,10 +93,9 @@ export const SettleBillSettingsPage: React.FC = () => {
           data.networks.map(n => ({
             name: n.name,
             description: n.description,
-            currency: n.currency,
             created_at: n.created_at
           })),
-          ['name', 'description', 'currency', 'created_at']
+          ['name', 'description', 'created_at']
         );
         downloadCSV(networksCSV, 'settlebill-networks');
       }
@@ -157,8 +156,7 @@ export const SettleBillSettingsPage: React.FC = () => {
                   const { error } = await supabase.from('settlegara_networks').insert({
                     name: row.name || 'Imported Network',
                     description: row.description || null,
-                    currency: row.currency || 'USD',
-                    created_by: user.id
+                    creator_id: user.id
                   });
                   if (error) {
                     console.error('Error importing network:', error);
