@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/', { replace: true });
     }
   }, [user, navigate]);
 
@@ -36,7 +37,8 @@ const Login = () => {
       if (error) {
         setError(error.message);
       } else {
-        navigate('/');
+        // Force navigation to home page
+        navigate('/', { replace: true });
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -50,6 +52,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
+      // Note: Google OAuth will handle the redirect automatically
     } catch (err) {
       setError('Failed to sign in with Google');
     } finally {

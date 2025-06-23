@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { LogIn, Mail, Tv, DollarSign, BarChart3, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +16,7 @@ export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signInWithGoogle } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +35,8 @@ export const LoginForm: React.FC = () => {
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
+        // Navigate to home page on successful login
+        navigate('/', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -49,6 +53,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
+      // Note: Google OAuth will handle the redirect automatically
     } catch (error: any) {
       toast({
         title: "Error",
