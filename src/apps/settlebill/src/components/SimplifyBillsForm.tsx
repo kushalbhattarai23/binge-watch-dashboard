@@ -51,7 +51,7 @@ export const SimplifyBillsForm: React.FC = () => {
     }
 
     setIsCalculating(true);
-    console.log('Starting simplification process...');
+    console.log('Starting debt simplification process...');
 
     try {
       // Filter bills for selected network that are pending
@@ -76,77 +76,36 @@ export const SimplifyBillsForm: React.FC = () => {
         balances[member.id] = 0;
       });
 
-      // For simplification, we'll assume each bill is split equally among all members
-      // In a real implementation, you'd fetch actual bill splits
+      // Calculate debts from bills (simplified equal split for now)
       networkBills.forEach(bill => {
         const splitAmount = Number(bill.total_amount) / members.length;
         
-        // The person who created the bill is owed money
-        const creator = members.find(m => m.user_email === bill.created_by);
-        if (creator) {
-          balances[creator.id] += Number(bill.total_amount) - splitAmount;
+        // Find who created/paid the bill
+        const payer = members.find(m => m.user_email === bill.created_by);
+        if (payer) {
+          // The payer is owed (total - their share)
+          balances[payer.id] += Number(bill.total_amount) - splitAmount;
         }
         
         // Everyone else owes their share
         members.forEach(member => {
-          if (member.id !== creator?.id) {
+          if (member.id !== payer?.id) {
             balances[member.id] -= splitAmount;
           }
         });
       });
 
-      console.log('Calculated balances:', balances);
+      console.log('Initial balances:', balances);
 
-      // Create simplified payments using a greedy algorithm
-      const creditors = Object.entries(balances)
-        .filter(([_, balance]) => balance > 0.01)
-        .sort((a, b) => b[1] - a[1]);
+      // Implement debt optimization algorithm
+      // The goal is to minimize transactions by finding direct settlements
+      const optimizedPayments = optimizeDebts(balances, members);
       
-      const debtors = Object.entries(balances)
-        .filter(([_, balance]) => balance < -0.01)
-        .sort((a, b) => a[1] - b[1]);
+      console.log('Optimized payments:', optimizedPayments);
+      setSimplifiedResults(optimizedPayments);
       
-      const payments: SimplifiedPayment[] = [];
-      
-      console.log('Creditors:', creditors);
-      console.log('Debtors:', debtors);
-
-      let creditorIndex = 0;
-      let debtorIndex = 0;
-      
-      while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
-        const [creditorId, creditAmount] = creditors[creditorIndex];
-        const [debtorId, debtAmount] = debtors[debtorIndex];
-        
-        const creditorMember = members.find(m => m.id === creditorId);
-        const debtorMember = members.find(m => m.id === debtorId);
-        
-        const settlementAmount = Math.min(creditAmount, Math.abs(debtAmount));
-        
-        if (settlementAmount > 0.01 && creditorMember && debtorMember) {
-          payments.push({
-            from: debtorId,
-            to: creditorId,
-            amount: settlementAmount,
-            fromName: debtorMember.user_name,
-            toName: creditorMember.user_name
-          });
-          
-          creditors[creditorIndex][1] -= settlementAmount;
-          debtors[debtorIndex][1] += settlementAmount;
-          
-          if (creditors[creditorIndex][1] <= 0.01) creditorIndex++;
-          if (Math.abs(debtors[debtorIndex][1]) <= 0.01) debtorIndex++;
-        } else {
-          break;
-        }
-      }
-      
-      console.log('Generated payments:', payments);
-      setSimplifiedResults(payments);
-      
-      if (payments.length > 0) {
-        toast.success(`Calculated ${payments.length} optimized transactions`);
+      if (optimizedPayments.length > 0) {
+        toast.success(`Calculated ${optimizedPayments.length} optimized transactions`);
       } else {
         toast.info('All debts are already settled!');
       }
@@ -156,6 +115,64 @@ export const SimplifyBillsForm: React.FC = () => {
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  // Debt optimization algorithm
+  const optimizeDebts = (balances: { [memberId: string]: number }, members: any[]): SimplifiedPayment[] => {
+    const payments: SimplifiedPayment[] = [];
+    const memberMap = new Map(members.map(m => [m.id, m]));
+    
+    // Create arrays of creditors (positive balance) and debtors (negative balance)
+    let creditors = Object.entries(balances)
+      .filter(([_, balance]) => balance > 0.01)
+      .map(([id, balance]) => ({ id, balance }))
+      .sort((a, b) => b.balance - a.balance);
+    
+    let debtors = Object.entries(balances)
+      .filter(([_, balance]) => balance < -0.01)
+      .map(([id, balance]) => ({ id, balance: Math.abs(balance) }))
+      .sort((a, b) => b.balance - a.balance);
+    
+    console.log('Creditors:', creditors);
+    console.log('Debtors:', debtors);
+
+    // Greedy algorithm to minimize transactions
+    while (creditors.length > 0 && debtors.length > 0) {
+      const creditor = creditors[0];
+      const debtor = debtors[0];
+      
+      // Calculate settlement amount (minimum of what creditor is owed and debtor owes)
+      const settlementAmount = Math.min(creditor.balance, debtor.balance);
+      
+      if (settlementAmount <= 0.01) break;
+      
+      const creditorMember = memberMap.get(creditor.id);
+      const debtorMember = memberMap.get(debtor.id);
+      
+      if (creditorMember && debtorMember) {
+        payments.push({
+          from: debtor.id,
+          to: creditor.id,
+          amount: Number(settlementAmount.toFixed(2)),
+          fromName: debtorMember.user_name,
+          toName: creditorMember.user_name
+        });
+      }
+      
+      // Update balances
+      creditor.balance -= settlementAmount;
+      debtor.balance -= settlementAmount;
+      
+      // Remove fully settled parties
+      if (creditor.balance <= 0.01) {
+        creditors.shift();
+      }
+      if (debtor.balance <= 0.01) {
+        debtors.shift();
+      }
+    }
+    
+    return payments;
   };
 
   const handleCreateSettlements = async () => {
@@ -217,32 +234,44 @@ export const SimplifyBillsForm: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calculator className="w-5 h-5" />
-              Simplified Payment Plan
+              Optimized Payment Plan
             </CardTitle>
             <p className="text-sm text-gray-600">
-              Optimized to minimize the number of transactions
+              Minimized transactions using direct debt settlements - {simplifiedResults.length} payment{simplifiedResults.length !== 1 ? 's' : ''} required
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {simplifiedResults.map((result, index) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg space-y-2 sm:space-y-0">
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-700 space-y-2 sm:space-y-0">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-xs">{result.fromName}</Badge>
+                    <Badge variant="outline" className="text-xs font-medium bg-white dark:bg-gray-800">
+                      {result.fromName}
+                    </Badge>
                     <ArrowRight className="w-4 h-4 text-gray-400" />
-                    <Badge variant="outline" className="text-xs">{result.toName}</Badge>
+                    <Badge variant="outline" className="text-xs font-medium bg-white dark:bg-gray-800">
+                      {result.toName}
+                    </Badge>
                   </div>
-                  <div className="text-lg font-semibold text-green-600">
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
                     {getCurrencySymbol(currency)}{result.amount.toFixed(2)}
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 p-3 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-800 mb-3">
-                <strong>Optimization:</strong> Reduced to just {simplifiedResults.length} payment{simplifiedResults.length !== 1 ? 's' : ''} to settle all debts!
+            
+            <div className="mt-6 p-4 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg border border-green-300 dark:border-green-600">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Debt Optimization Complete!
+                </p>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+                This plan eliminates all debts with just {simplifiedResults.length} direct payment{simplifiedResults.length !== 1 ? 's' : ''}, 
+                avoiding unnecessary intermediate transactions.
               </p>
-              <Button onClick={handleCreateSettlements} className="w-full">
+              <Button onClick={handleCreateSettlements} className="w-full bg-green-600 hover:bg-green-700">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Create Settlement Plan
               </Button>
@@ -259,11 +288,16 @@ export const SimplifyBillsForm: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               {settlements.slice(0, 5).map((settlement) => (
-                <div key={settlement.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span className="text-sm">Settlement #{settlement.id.slice(0, 8)}</span>
-                  <Badge variant={settlement.status === 'completed' ? 'default' : 'secondary'}>
-                    {settlement.status}
-                  </Badge>
+                <div key={settlement.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <span className="text-sm font-medium">Settlement #{settlement.id.slice(0, 8)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {getCurrencySymbol(settlement.currency)}{Number(settlement.amount).toFixed(2)}
+                    </span>
+                    <Badge variant={settlement.status === 'completed' ? 'default' : 'secondary'}>
+                      {settlement.status}
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>
