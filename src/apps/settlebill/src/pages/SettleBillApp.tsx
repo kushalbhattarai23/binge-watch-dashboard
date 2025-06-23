@@ -14,7 +14,6 @@ import { SettleBillSidebar } from '../components/SettleBillSidebar';
 export const SettleBillApp: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SettleBillSidebar />
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<OverviewPage />} />
