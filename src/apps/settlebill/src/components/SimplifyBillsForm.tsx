@@ -1,15 +1,16 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
 import { useBills, useBillSplits } from '@/hooks/useSettleGaraBills';
 import { useCreateSettlement, useSettlements } from '@/hooks/useSettlements';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Calculator, ArrowRight, Users, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Calculator, ArrowRight, Users, CheckCircle, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SimplifiedPayment {
@@ -20,6 +21,14 @@ interface SimplifiedPayment {
   toName: string;
 }
 
+interface NetworkSettlement {
+  from_member: string;
+  to_member: string;
+  amount: number;
+  from_member_name?: string;
+  to_member_name?: string;
+}
+
 export const SimplifyBillsForm: React.FC = () => {
   const { data: networks } = useNetworks();
   const { data: bills } = useBills();
@@ -27,6 +36,7 @@ export const SimplifyBillsForm: React.FC = () => {
   const createSettlementMutation = useCreateSettlement();
   const [selectedNetwork, setSelectedNetwork] = useState<string>('');
   const [simplifiedResults, setSimplifiedResults] = useState<SimplifiedPayment[]>([]);
+  const [networkSettlements, setNetworkSettlements] = useState<NetworkSettlement[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const { data: members } = useNetworkMembers(selectedNetwork);
   const { data: settlements } = useSettlements(selectedNetwork);
@@ -54,60 +64,38 @@ export const SimplifyBillsForm: React.FC = () => {
     console.log('Starting debt simplification process...');
 
     try {
-      // Filter bills for selected network that are pending
-      const networkBills = bills.filter(bill => 
-        bill.network_id === selectedNetwork && bill.status === 'pending'
-      );
-      
-      console.log('Network bills found:', networkBills.length);
+      // Call the database function
+      const { data: functionResult, error: functionError } = await supabase
+        .rpc('simplify_network_settlements', { network_uuid: selectedNetwork });
 
-      if (networkBills.length === 0) {
-        toast.info('No pending bills found for this network');
-        setSimplifiedResults([]);
+      if (functionError) {
+        console.error('Database function error:', functionError);
+        toast.error('Failed to calculate simplified payments from database');
         setIsCalculating(false);
         return;
       }
 
-      // Calculate net balances for each member
-      const balances: { [memberId: string]: number } = {};
+      console.log('Database function result:', functionResult);
       
-      // Initialize balances
-      members.forEach(member => {
-        balances[member.id] = 0;
-      });
-
-      // Calculate debts from bills (simplified equal split for now)
-      networkBills.forEach(bill => {
-        const splitAmount = Number(bill.total_amount) / members.length;
+      if (functionResult && functionResult.length > 0) {
+        // Store the raw database results
+        setNetworkSettlements(functionResult);
         
-        // Find who created/paid the bill
-        const payer = members.find(m => m.user_email === bill.created_by);
-        if (payer) {
-          // The payer is owed (total - their share)
-          balances[payer.id] += Number(bill.total_amount) - splitAmount;
-        }
+        // Convert to the existing format for backward compatibility
+        const convertedResults = functionResult.map((result: NetworkSettlement) => ({
+          from: result.from_member,
+          to: result.to_member,
+          amount: Number(result.amount),
+          fromName: result.from_member_name || 'Unknown Member',
+          toName: result.to_member_name || 'Unknown Member'
+        }));
         
-        // Everyone else owes their share
-        members.forEach(member => {
-          if (member.id !== payer?.id) {
-            balances[member.id] -= splitAmount;
-          }
-        });
-      });
-
-      console.log('Initial balances:', balances);
-
-      // Implement debt optimization algorithm
-      // The goal is to minimize transactions by finding direct settlements
-      const optimizedPayments = optimizeDebts(balances, members);
-      
-      console.log('Optimized payments:', optimizedPayments);
-      setSimplifiedResults(optimizedPayments);
-      
-      if (optimizedPayments.length > 0) {
-        toast.success(`Calculated ${optimizedPayments.length} optimized transactions`);
+        setSimplifiedResults(convertedResults);
+        toast.success(`Calculated ${convertedResults.length} optimized transactions from database`);
       } else {
-        toast.info('All debts are already settled!');
+        setNetworkSettlements([]);
+        setSimplifiedResults([]);
+        toast.info('No settlements needed - all debts are settled!');
       }
     } catch (error) {
       console.error('Simplify error:', error);
@@ -191,6 +179,7 @@ export const SimplifyBillsForm: React.FC = () => {
       
       toast.success('Settlement plan created successfully!');
       setSimplifiedResults([]);
+      setNetworkSettlements([]);
     } catch (error) {
       toast.error('Failed to create settlement plan');
       console.error('Create settlements error:', error);
@@ -229,12 +218,81 @@ export const SimplifyBillsForm: React.FC = () => {
         </Button>
       </div>
 
-      {simplifiedResults.length > 0 && (
+      {/* Database Function Results Display */}
+      {networkSettlements.length > 0 && (
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+            <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+              <DollarSign className="w-5 h-5" />
+              Network Settlement Results (Database Function)
+            </CardTitle>
+            <p className="text-sm text-blue-600 dark:text-blue-400">
+              Results from simplify_network_settlements function - {networkSettlements.length} settlement{networkSettlements.length !== 1 ? 's' : ''} calculated
+            </p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>From Member</TableHead>
+                    <TableHead>To Member</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {networkSettlements.map((settlement, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">
+                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-700">
+                          {settlement.from_member_name || settlement.from_member}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700">
+                            {settlement.to_member_name || settlement.to_member}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                          {getCurrencySymbol(currency)}{Number(settlement.amount).toFixed(2)}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              <div className="mt-6 p-4 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-300 dark:border-blue-600">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Database Optimization Complete!
+                  </p>
+                </div>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                  This plan eliminates all debts with {networkSettlements.length} optimized payment{networkSettlements.length !== 1 ? 's' : ''} calculated by the database function.
+                </p>
+                <Button onClick={handleCreateSettlements} className="w-full bg-blue-600 hover:bg-blue-700">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Create Settlement Plan
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legacy Results Display (keeping for compatibility) */}
+      {simplifiedResults.length > 0 && networkSettlements.length === 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calculator className="w-5 h-5" />
-              Optimized Payment Plan
+              Optimized Payment Plan (Legacy)
             </CardTitle>
             <p className="text-sm text-gray-600">
               Minimized transactions using direct debt settlements - {simplifiedResults.length} payment{simplifiedResults.length !== 1 ? 's' : ''} required
@@ -280,6 +338,7 @@ export const SimplifyBillsForm: React.FC = () => {
         </Card>
       )}
 
+      {/* Recent Settlements Display */}
       {settlements && settlements.length > 0 && (
         <Card>
           <CardHeader>
