@@ -1,23 +1,16 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Calculator } from 'lucide-react';
 import { SimplifyBillsForm } from '../components/SimplifyBillsForm';
 
 export const SimplifyPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
+    <div className="p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Link to="/settlebill/networks">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Simplify Bills</h1>
+          <p className="text-gray-600">Optimize payments and reduce the number of transactions needed</p>
         </div>
         
         <Card className="shadow-lg">

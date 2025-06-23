@@ -1,20 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { currencies, defaultCurrency } from '@/config/currencies';
+import { currencies, defaultCurrency, getCurrencySymbol } from '@/config/currencies';
 import { Currency } from '@/types';
+import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
 
 export const useCurrency = () => {
-  const [currentCurrency, setCurrentCurrency] = useState<Currency>(defaultCurrency);
-
-  useEffect(() => {
-    const savedCurrency = localStorage.getItem('preferredCurrency');
-    if (savedCurrency) {
-      const currency = currencies.find(c => c.code === savedCurrency);
-      if (currency) {
-        setCurrentCurrency(currency);
-      }
-    }
-  }, []);
+  const { data: userPreferences } = useUserPreferences();
+  const updatePreferencesMutation = useUpdateUserPreferences();
+  
+  const currentCurrencyCode = userPreferences?.preferred_currency || defaultCurrency.code;
+  const currentCurrency = currencies.find(c => c.code === currentCurrencyCode) || defaultCurrency;
 
   const formatAmount = (amount: number) => {
     return `${currentCurrency.symbol} ${amount.toLocaleString()}`;
@@ -23,14 +18,14 @@ export const useCurrency = () => {
   const updateCurrency = (currencyCode: string) => {
     const currency = currencies.find(c => c.code === currencyCode);
     if (currency) {
-      setCurrentCurrency(currency);
-      localStorage.setItem('preferredCurrency', currencyCode);
+      updatePreferencesMutation.mutate({ preferred_currency: currencyCode });
     }
   };
 
   return {
     currency: currentCurrency,
     formatAmount,
-    updateCurrency
+    updateCurrency,
+    getCurrencySymbol
   };
 };

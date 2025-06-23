@@ -448,6 +448,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          preferred_currency: string | null
           updated_at: string | null
         }
         Insert: {
@@ -456,6 +457,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          preferred_currency?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -464,6 +466,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          preferred_currency?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -505,6 +508,8 @@ export type Database = {
           created_at: string
           id: string
           member_id: string
+          settled_at: string | null
+          settled_by: string | null
           status: string
         }
         Insert: {
@@ -513,6 +518,8 @@ export type Database = {
           created_at?: string
           id?: string
           member_id: string
+          settled_at?: string | null
+          settled_by?: string | null
           status?: string
         }
         Update: {
@@ -521,6 +528,8 @@ export type Database = {
           created_at?: string
           id?: string
           member_id?: string
+          settled_at?: string | null
+          settled_by?: string | null
           status?: string
         }
         Relationships: [
@@ -651,6 +660,67 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      settlegara_settlements: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          from_member_id: string
+          id: string
+          network_id: string
+          status: string
+          to_member_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          from_member_id: string
+          id?: string
+          network_id: string
+          status?: string
+          to_member_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          from_member_id?: string
+          id?: string
+          network_id?: string
+          status?: string
+          to_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlegara_settlements_from_member_id_fkey"
+            columns: ["from_member_id"]
+            isOneToOne: false
+            referencedRelation: "settlegara_network_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlegara_settlements_network_id_fkey"
+            columns: ["network_id"]
+            isOneToOne: false
+            referencedRelation: "settlegara_networks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlegara_settlements_to_member_id_fkey"
+            columns: ["to_member_id"]
+            isOneToOne: false
+            referencedRelation: "settlegara_network_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       show_universes: {
         Row: {

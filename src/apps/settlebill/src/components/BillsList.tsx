@@ -3,14 +3,30 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Receipt, Calendar, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { Receipt, Calendar, DollarSign, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useBills, useDeleteBill } from '@/hooks/useSettleGaraBills';
+import { useBills, useDeleteBill, useUpdateBill } from '@/hooks/useSettleGaraBills';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { toast } from 'sonner';
 
 export const BillsList: React.FC = () => {
   const { data: bills, isLoading } = useBills();
+  const { data: userPreferences } = useUserPreferences();
   const deleteBillMutation = useDeleteBill();
+  const updateBillMutation = useUpdateBill();
+
+  const currency = userPreferences?.preferred_currency || 'USD';
+  const getCurrencySymbol = (curr: string) => {
+    const symbols: { [key: string]: string } = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      INR: '₹',
+      NPR: 'रु',
+      JPY: '¥'
+    };
+    return symbols[curr] || curr;
+  };
 
   const handleDelete = (billId: string) => {
     if (confirm('Are you sure you want to delete this bill?')) {
@@ -23,6 +39,20 @@ export const BillsList: React.FC = () => {
         }
       });
     }
+  };
+
+  const handleMarkAsSettled = (billId: string) => {
+    updateBillMutation.mutate(
+      { id: billId, status: 'settled' },
+      {
+        onSuccess: () => {
+          toast.success('Bill marked as settled');
+        },
+        onError: () => {
+          toast.error('Failed to update bill status');
+        }
+      }
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -75,6 +105,16 @@ export const BillsList: React.FC = () => {
                 )}
               </div>
               <div className="flex gap-2">
+                {bill.status !== 'settled' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleMarkAsSettled(bill.id)}
+                    disabled={updateBillMutation.isPending}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                  </Button>
+                )}
                 <Link to={`/settlebill/bills/${bill.id}`}>
                   <Button size="sm" variant="outline">
                     <Edit className="w-4 h-4" />
@@ -96,7 +136,7 @@ export const BillsList: React.FC = () => {
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
                   <DollarSign className="w-4 h-4" />
-                  {bill.currency} {bill.total_amount.toFixed(2)}
+                  {getCurrencySymbol(currency)} {bill.total_amount.toFixed(2)}
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
