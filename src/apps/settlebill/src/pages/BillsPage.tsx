@@ -12,11 +12,11 @@ export const BillsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
               <Receipt className="w-8 h-8 text-cyan-600" />
               Bills
             </h1>
-            <p className="text-gray-600">Track and manage all your shared expenses</p>
+            <p className="text-gray-600 dark:text-gray-400">Track and manage all your shared expenses</p>
           </div>
           <div className="flex gap-3">
             <Link to="/settlebill/simplify">
