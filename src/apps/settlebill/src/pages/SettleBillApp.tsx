@@ -9,8 +9,7 @@ import { CreateNetworkPage } from './CreateNetworkPage';
 import { NetworkDetailPage } from './NetworkDetailPage';
 import { CreateBillPage } from './CreateBillPage';
 import { BillDetailPage } from './BillDetailPage';
-import SettleBillSettingsPage from './SettingsPage';
-import { SettleBillSidebar } from '../components/SettleBillSidebar';
+
 
 export const SettleBillApp: React.FC = () => {
   return (
@@ -26,7 +25,6 @@ export const SettleBillApp: React.FC = () => {
             <Route path="/bills/create" element={<CreateBillPage />} />
             <Route path="/bills/:id" element={<BillDetailPage />} />
             <Route path="/simplify" element={<SimplifyPage />} />
-            <Route path="/settings" element={<SettleBillSettingsPage />} />
           </Routes>
         </main>
       </div>
