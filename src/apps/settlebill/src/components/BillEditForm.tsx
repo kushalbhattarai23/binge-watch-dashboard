@@ -7,16 +7,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useNetworks, useNetworkMembers } from '@/hooks/useSettleBillNetworks';
-import { useCreateBill } from '@/hooks/useSettleGaraBills';
+import { useNetworkMembers } from '@/hooks/useSettleBillNetworks';
+import { useUpdateBill, useBillSplits } from '@/hooks/useSettleGaraBills';
+import { Bill } from '@/hooks/useSettleGaraBills';
 import { useCurrency } from '@/hooks/useCurrency';
 import { AlertCircle, Users, DollarSign, User } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface BillFormProps {
+interface BillEditFormProps {
+  bill: Bill;
   onClose: () => void;
   onSuccess?: () => void;
-  selectedNetworkId?: string;
 }
 
 interface MemberSplit {
@@ -25,46 +26,37 @@ interface MemberSplit {
   amount: number;
 }
 
-export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selectedNetworkId }) => {
-  const { data: networks } = useNetworks();
-  const [selectedNetwork, setSelectedNetwork] = useState(selectedNetworkId || '');
-  const { data: members } = useNetworkMembers(selectedNetwork);
-  const createBillMutation = useCreateBill();
+export const BillEditForm: React.FC<BillEditFormProps> = ({ bill, onClose, onSuccess }) => {
+  const { data: members } = useNetworkMembers(bill.network_id);
+  const { data: existingSplits } = useBillSplits(bill.id);
+  const updateBillMutation = useUpdateBill();
   const { currency, formatAmount } = useCurrency();
   
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    total_amount: '',
-    currency: currency.code,
-    network_id: selectedNetworkId || '',
-    paid_by: ''
+    title: bill.title,
+    description: bill.description || '',
+    total_amount: bill.total_amount.toString(),
+    currency: bill.currency,
+    paid_by: bill.paid_by || ''
   });
   
   const [memberSplits, setMemberSplits] = useState<MemberSplit[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize member splits when network members are loaded
+  // Initialize member splits when data is loaded
   useEffect(() => {
-    if (members && members.length > 0) {
-      const splits = members.map(member => ({
-        memberId: member.id,
-        memberName: member.user_name,
-        amount: 0
-      }));
+    if (members && existingSplits) {
+      const splits = members.map(member => {
+        const existingSplit = existingSplits.find(split => split.member_id === member.id);
+        return {
+          memberId: member.id,
+          memberName: member.user_name,
+          amount: existingSplit ? Number(existingSplit.amount) : 0
+        };
+      });
       setMemberSplits(splits);
     }
-  }, [members]);
-
-  // Update network in form data when selected network changes
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, network_id: selectedNetwork, paid_by: '' }));
-  }, [selectedNetwork]);
-
-  // Update currency when user's preferred currency changes
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, currency: currency.code }));
-  }, [currency.code]);
+  }, [members, existingSplits]);
 
   const handleTotalAmountChange = (value: string) => {
     setFormData(prev => ({ ...prev, total_amount: value }));
@@ -100,11 +92,6 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         setError('Bill title is required');
         return;
       }
-      
-      if (!formData.network_id) {
-        setError('Please select a network');
-        return;
-      }
 
       if (!formData.total_amount || parseFloat(formData.total_amount) <= 0) {
         setError('Please enter a valid total amount');
@@ -125,36 +112,23 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
       }
 
       const billData = {
-        network_id: formData.network_id,
+        id: bill.id,
         title: formData.title,
         description: formData.description || null,
         total_amount: totalAmount,
         currency: formData.currency,
-        status: 'active',
         paid_by: formData.paid_by
       };
 
-      const splits = memberSplits
-        .filter(split => split.amount > 0)
-        .map(split => ({
-          member_id: split.memberId,
-          amount: split.amount
-        }));
+      await updateBillMutation.mutateAsync(billData);
 
-      await createBillMutation.mutateAsync({
-        bill: billData,
-        splits: splits
-      });
-
-      toast.success('Bill created successfully!');
-      setFormData({ title: '', description: '', total_amount: '', currency: currency.code, network_id: selectedNetworkId || '', paid_by: '' });
-      setMemberSplits([]);
+      toast.success('Bill updated successfully!');
       onSuccess?.();
       
     } catch (error: any) {
-      console.error('Error creating bill:', error);
-      setError(error.message || 'Failed to create bill');
-      toast.error('Failed to create bill');
+      console.error('Error updating bill:', error);
+      setError(error.message || 'Failed to update bill');
+      toast.error('Failed to update bill');
     }
   };
 
@@ -177,7 +151,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., Dinner at Restaurant"
               required
-              disabled={createBillMutation.isPending}
+              disabled={updateBillMutation.isPending}
               className="w-full"
             />
           </div>
@@ -190,32 +164,12 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Additional details about the bill..."
               rows={3}
-              disabled={createBillMutation.isPending}
+              disabled={updateBillMutation.isPending}
               className="w-full resize-none"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="network">Network *</Label>
-              <Select
-                value={selectedNetwork}
-                onValueChange={setSelectedNetwork}
-                disabled={createBillMutation.isPending || !!selectedNetworkId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a network" />
-                </SelectTrigger>
-                <SelectContent>
-                  {networks?.map((network) => (
-                    <SelectItem key={network.id} value={network.id}>
-                      {network.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="total_amount">Total Amount *</Label>
               <div className="relative">
@@ -231,20 +185,40 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                   onChange={(e) => handleTotalAmountChange(e.target.value)}
                   placeholder="0.00"
                   required
-                  disabled={createBillMutation.isPending}
+                  disabled={updateBillMutation.isPending}
                   className="pl-8 w-full"
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                disabled={updateBillMutation.isPending}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="NPR">NPR (रु)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="INR">INR (₹)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {selectedNetwork && members && members.length > 0 && (
+          {members && members.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="paid_by">Paid By *</Label>
               <Select
                 value={formData.paid_by}
                 onValueChange={(value) => setFormData({ ...formData, paid_by: value })}
-                disabled={createBillMutation.isPending}
+                disabled={updateBillMutation.isPending}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select who paid the bill" />
@@ -264,7 +238,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
           )}
         </div>
 
-        {selectedNetwork && members && members.length > 0 && (
+        {memberSplits.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -292,7 +266,7 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
                       value={split.amount}
                       onChange={(e) => handleMemberAmountChange(split.memberId, e.target.value)}
                       className="w-20 sm:w-24"
-                      disabled={createBillMutation.isPending}
+                      disabled={updateBillMutation.isPending}
                     />
                   </div>
                 </div>
@@ -311,17 +285,17 @@ export const BillForm: React.FC<BillFormProps> = ({ onClose, onSuccess, selected
         <div className="flex flex-col sm:flex-row gap-2 pt-4">
           <Button 
             type="submit"
-            disabled={createBillMutation.isPending || !formData.title.trim() || !selectedNetwork || !formData.paid_by}
+            disabled={updateBillMutation.isPending || !formData.title.trim() || !formData.paid_by}
             className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
-            {createBillMutation.isPending ? 'Creating Bill...' : 'Create Bill'}
+            {updateBillMutation.isPending ? 'Updating Bill...' : 'Update Bill'}
           </Button>
           <Button 
             type="button" 
             variant="outline" 
             onClick={onClose} 
             className="flex-1"
-            disabled={createBillMutation.isPending}
+            disabled={updateBillMutation.isPending}
           >
             Cancel
           </Button>

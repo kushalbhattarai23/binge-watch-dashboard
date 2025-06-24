@@ -10,6 +10,7 @@ import { CreateNetworkPage } from './CreateNetworkPage';
 import { NetworkDetailPage } from './NetworkDetailPage';
 import { CreateBillPage } from './CreateBillPage';
 import { BillDetailPage } from './BillDetailPage';
+import { BillEditPage } from './BillEditPage';
 
 export const SettleBillApp: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ export const SettleBillApp: React.FC = () => {
               <Route path="/bills" element={<BillsPage />} />
               <Route path="/bills/create" element={<CreateBillPage />} />
               <Route path="/bills/:id" element={<BillDetailPage />} />
+              <Route path="/bills/:id/edit" element={<BillEditPage />} />
               <Route path="/simplify" element={<SimplifyPage />} />
             </Routes>
           </main>
