@@ -55,6 +55,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   const handleDateChange = (englishDate: string, nepaliDate: string) => {
+    console.log('Date changed:', { englishDate, nepaliDate });
     setFormData({ ...formData, date: englishDate });
   };
 
@@ -142,7 +143,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           
           <div>
             <NepaliDatePicker
-              label="Date"
+              label="Transaction Date"
               value={formData.date}
               onChange={handleDateChange}
               required

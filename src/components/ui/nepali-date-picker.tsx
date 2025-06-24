@@ -2,7 +2,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon } from 'lucide-react';
+import { Calendar } from 'lucide-react';
+
+// Declare the nepali datepicker interface
+declare global {
+  interface HTMLInputElement {
+    nepaliDatePicker: (config?: any) => void;
+    value: string;
+  }
+}
+
+// Declare the NepaliDateConverter which is available globally after loading the nepali datepicker script
+declare global {
+  interface Window {
+    NepaliFunctions: {
+      BS2AD: (bsDate: string) => string;
+      AD2BS: (adDate: string) => string;
+      ConvertDateFormat: (date: string, format: string) => string;
+    };
+  }
+}
 
 interface NepaliDatePickerProps {
   label?: string;
@@ -19,9 +38,9 @@ export const NepaliDatePicker: React.FC<NepaliDatePickerProps> = ({
   required = false,
   id
 }) => {
+  const [englishDate, setEnglishDate] = useState<string>(value || '');
+  const [nepaliDate, setNepaliDate] = useState<string>('');
   const nepaliInputRef = useRef<HTMLInputElement>(null);
-  const [nepaliDate, setNepaliDate] = useState('');
-  const [englishDate, setEnglishDate] = useState(value || '');
 
   // Convert AD date to BS date
   const convertADToBS = (adDate: string): string => {
@@ -45,6 +64,29 @@ export const NepaliDatePicker: React.FC<NepaliDatePickerProps> = ({
     }
   };
 
+  // Handle English date change
+  const handleEnglishDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEnglishDate = e.target.value;
+    setEnglishDate(newEnglishDate);
+    
+    if (newEnglishDate && window.NepaliFunctions) {
+      const bsDate = convertADToBS(newEnglishDate);
+      setNepaliDate(bsDate);
+      
+      // Update nepali datepicker value
+      if (nepaliInputRef.current) {
+        nepaliInputRef.current.value = bsDate;
+      }
+    } else {
+      setNepaliDate('');
+      if (nepaliInputRef.current) {
+        nepaliInputRef.current.value = '';
+      }
+    }
+    
+    onChange(newEnglishDate, nepaliDate);
+  };
+
   // Initialize Nepali datepicker
   useEffect(() => {
     if (nepaliInputRef.current && window.$) {
@@ -57,20 +99,22 @@ export const NepaliDatePicker: React.FC<NepaliDatePickerProps> = ({
         ndpYearCount: 10,
         closeOnDateSelect: true,
         onChange: function() {
-          const selectedNepaliDate = $input.val();
-          console.log('Nepali date selected:', selectedNepaliDate);
-          setNepaliDate(selectedNepaliDate);
+          const bsDate = nepaliInputRef.current?.value || '';
+          console.log('Nepali date selected:', bsDate);
+          setNepaliDate(bsDate);
           
-          // Convert Nepali date to English date
-          if (window.NepaliFunctions && selectedNepaliDate) {
+          if (bsDate && window.NepaliFunctions) {
             try {
-              const convertedEnglishDate = convertBSToAD(selectedNepaliDate);
-              console.log('Converted to English date:', convertedEnglishDate);
-              setEnglishDate(convertedEnglishDate);
-              onChange(convertedEnglishDate, selectedNepaliDate);
+              const adDate = convertBSToAD(bsDate);
+              console.log('Converted to English date:', adDate);
+              setEnglishDate(adDate);
+              onChange(adDate, bsDate);
             } catch (error) {
               console.error('Error converting Nepali date to English:', error);
             }
+          } else {
+            setEnglishDate('');
+            onChange('', bsDate);
           }
         }
       });
@@ -102,52 +146,19 @@ export const NepaliDatePicker: React.FC<NepaliDatePickerProps> = ({
     }
   }, [value, englishDate]);
 
-  const handleEnglishDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEnglishDate = e.target.value;
-    setEnglishDate(newEnglishDate);
-    
-    if (window.NepaliFunctions && newEnglishDate) {
-      try {
-        const convertedNepaliDate = convertADToBS(newEnglishDate);
-        setNepaliDate(convertedNepaliDate);
-        if (nepaliInputRef.current && window.$) {
-          window.$(nepaliInputRef.current).val(convertedNepaliDate);
-        }
-        onChange(newEnglishDate, convertedNepaliDate);
-      } catch (error) {
-        console.error('Error converting English date to Nepali:', error);
-      }
-    } else {
-      onChange(newEnglishDate, nepaliDate);
-    }
-  };
-
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {label && <Label htmlFor={id} className="text-sm font-medium">{label}</Label>}
       
-      {/* Primary Nepali Date Input */}
-      <div className="relative">
-        <input
-          ref={nepaliInputRef}
-          id={id}
-          type="text"
-          placeholder="Select Nepali date"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          readOnly
-          required={required}
-        />
-        <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      </div>
-      
-      {/* Alternative English Date Input */}
+      {/* Primary English Date Input */}
       <div className="space-y-2">
-        <Label htmlFor={`${id}-english`} className="text-xs text-muted-foreground">Alternative: English (AD) Date</Label>
+        <Label htmlFor={`${id}-english`} className="text-sm font-medium">Date</Label>
         <Input
           id={`${id}-english`}
           type="date"
           value={englishDate}
           onChange={handleEnglishDateChange}
+          required={required}
           className="text-sm"
         />
         {englishDate && (
@@ -158,6 +169,27 @@ export const NepaliDatePicker: React.FC<NepaliDatePickerProps> = ({
               month: 'long',
               day: 'numeric'
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Alternative Nepali Date Input */}
+      <div className="space-y-2">
+        <Label htmlFor={`${id}-nepali`} className="text-xs text-muted-foreground">Alternative: Nepali (BS) Date</Label>
+        <div className="relative">
+          <input
+            ref={nepaliInputRef}
+            id={`${id}-nepali`}
+            type="text"
+            placeholder="Select Nepali date"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            readOnly
+          />
+          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        </div>
+        {nepaliDate && (
+          <div className="text-xs text-muted-foreground">
+            Nepali Calendar: {nepaliDate}
           </div>
         )}
       </div>
