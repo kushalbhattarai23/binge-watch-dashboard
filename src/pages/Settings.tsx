@@ -1,488 +1,663 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { Download, Upload, BadgeIndianRupee, FileText, Lock, Globe } from 'lucide-react';
+import { currencies } from '@/config/currencies';
+import { useWallets } from '@/hooks/useWallets';
+import { useTransactions } from '@/hooks/useTransactions';
+import { useCategories } from '@/hooks/useCategories';
+import { useTransfers } from '@/hooks/useTransfers';
+import { useMovies } from '@/hooks/useMovies';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { useCurrency } from '@/hooks/useCurrency';
+import { convertToCSV, downloadCSV, parseCSV } from '@/utils/csvUtils';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { User, Moon, Sun, Download, Upload, Settings as SettingsIcon, Trash2, Users, Globe, Shield, Mail, Key } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 
-const Settings = () => {
+export const FinanceSettings: React.FC = () => {
+  const { currency, updateCurrency } = useCurrency();
+  const [exportOptions, setExportOptions] = useState({
+    wallets: true,
+    transactions: true,
+    categories: true,
+    transfers: true,
+    movies: true,
+    tvShows: true
+  });
+  const { toast } = useToast();
+  const { wallets } = useWallets();
+  const { transactions } = useTransactions();
+  const { categories } = useCategories();
+  const { transfers } = useTransfers();
+  const { data: movies } = useMovies();
+  const { settings, toggleApp } = useAppSettings();
   const { user } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [feedback, setFeedback] = useState('');
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['user-profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: any) => {
-      if (!user?.id) throw new Error('No user ID');
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update profile.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const sendFeedbackMutation = useMutation({
-    mutationFn: async (feedback: string) => {
-      // For now, we'll just use the requests table to store feedback
-      const { error } = await supabase
-        .from('requests')
-        .insert([
-          {
-            user_id: user?.id,
-            title: 'User Feedback',
-            type: 'feedback',
-            message: feedback,
-          }
-        ]);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setFeedback('');
-      toast({
-        title: "Feedback sent",
-        description: "Thank you for your feedback!",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to send feedback.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDarkModeToggle = (checked: boolean) => {
-    setDarkMode(checked);
-    // For now, we'll just update the local state since the profiles table doesn't have preferences
+  const handleCurrencyChange = (value: string) => {
+    updateCurrency(value);
+    
+    const selectedCurrencyObj = currencies.find(c => c.code === value);
+    
     toast({
-      title: "Theme preference saved",
-      description: "Dark mode preference has been updated.",
+      title: 'Currency Updated',
+      description: `Your currency is now set to ${selectedCurrencyObj?.name} (${selectedCurrencyObj?.symbol})`,
     });
   };
 
-  const handleNotificationToggle = (type: string, checked: boolean) => {
-    // For now, we'll just show a toast since the profiles table doesn't have preferences
+  const handleExportData = async () => {
     toast({
-      title: "Notification preference saved",
-      description: `${type} notifications have been ${checked ? 'enabled' : 'disabled'}.`,
+      title: 'Data Export Started',
+      description: 'Your data is being prepared for download.',
     });
-  };
-
-  const handlePrivacyToggle = (setting: string, checked: boolean) => {
-    // For now, we'll just show a toast since the profiles table doesn't have preferences
-    toast({
-      title: "Privacy setting saved",
-      description: `${setting} has been ${checked ? 'enabled' : 'disabled'}.`,
-    });
-  };
-
-  const exportUserData = async () => {
-    setIsExporting(true);
+    
     try {
-      // Export user show tracking data
-      const { data: userShowTracking } = await supabase
-        .from('user_show_tracking')
-        .select(`
-          *,
-          show:shows(*)
-        `)
-        .eq('user_id', user?.id);
+      if (exportOptions.wallets && wallets.length > 0) {
+        const walletsCSV = convertToCSV(
+          wallets.map(w => ({
+            name: w.name,
+            balance: w.balance,
+            currency: w.currency,
+            created_at: w.created_at
+          })),
+          ['name', 'balance', 'currency', 'created_at']
+        );
+        downloadCSV(walletsCSV, 'wallets');
+      }
 
-      // Export movies
-      const { data: movies } = await supabase
-        .from('movies')
-        .select('*')
-        .eq('user_id', user?.id);
+      if (exportOptions.transactions && transactions.length > 0) {
+        const transactionsCSV = convertToCSV(
+          transactions.map(t => ({
+            reason: t.reason,
+            type: t.type,
+            income: t.income || '',
+            expense: t.expense || '',
+            date: t.date,
+            wallet_id: t.wallet_id,
+            category_id: t.category_id || ''
+          })),
+          ['reason', 'type', 'income', 'expense', 'date', 'wallet_id', 'category_id']
+        );
+        downloadCSV(transactionsCSV, 'transactions');
+      }
 
-      // Export finance data
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user?.id);
+      if (exportOptions.categories && categories.length > 0) {
+        const categoriesCSV = convertToCSV(
+          categories.map(c => ({
+            name: c.name,
+            color: c.color
+          })),
+          ['name', 'color']
+        );
+        downloadCSV(categoriesCSV, 'categories');
+      }
 
-      const { data: wallets } = await supabase
-        .from('wallets')
-        .select('*')
-        .eq('user_id', user?.id);
+      if (exportOptions.transfers && transfers.length > 0) {
+        const transfersCSV = convertToCSV(
+          transfers.map(t => ({
+            from_wallet_id: t.from_wallet_id,
+            to_wallet_id: t.to_wallet_id,
+            amount: t.amount,
+            date: t.date,
+            description: t.description || '',
+            status: t.status
+          })),
+          ['from_wallet_id', 'to_wallet_id', 'amount', 'date', 'description', 'status']
+        );
+        downloadCSV(transfersCSV, 'transfers');
+      }
 
-      const exportData = {
-        exported_at: new Date().toISOString(),
-        user_show_tracking: userShowTracking || [],
-        movies: movies || [],
-        finance: {
-          transactions: transactions || [],
-          wallets: wallets || []
+      // Export movies if selected
+      if (exportOptions.movies && movies && movies.length > 0) {
+        const moviesCSV = convertToCSV(
+          movies.map(m => ({
+            title: m.title,
+            description: m.description || '',
+            genre: m.genre || '',
+            release_year: m.release_year || '',
+            director: m.director || '',
+            duration_minutes: m.duration_minutes || '',
+            poster_url: m.poster_url || '',
+            rating: m.rating || '',
+            status: m.status,
+            user_rating: m.user_rating || '',
+            user_notes: m.user_notes || '',
+            watched_at: m.watched_at || '',
+            created_at: m.created_at
+          })),
+          ['title', 'description', 'genre', 'release_year', 'director', 'duration_minutes', 'poster_url', 'rating', 'status', 'user_rating', 'user_notes', 'watched_at', 'created_at']
+        );
+        downloadCSV(moviesCSV, 'movies');
+      }
+
+      // Export TV shows tracking data if selected
+      if (exportOptions.tvShows && user) {
+        const { data: userShowTracking } = await supabase
+          .from('user_show_tracking')
+          .select(`
+            *,
+            shows:show_id (title, description, poster_url)
+          `)
+          .eq('user_id', user.id);
+
+        if (userShowTracking && userShowTracking.length > 0) {
+          const tvShowsCSV = convertToCSV(
+            userShowTracking.map((t: any) => ({
+              show_title: t.shows?.title || '',
+              show_description: t.shows?.description || '',
+              poster_url: t.shows?.poster_url || '',
+              total_episodes: t.total_episodes || 0,
+              watched_episodes: t.watched_episodes || 0,
+              last_updated: t.last_updated || '',
+              created_at: t.created_at
+            })),
+            ['show_title', 'show_description', 'poster_url', 'total_episodes', 'watched_episodes', 'last_updated', 'created_at']
+          );
+          downloadCSV(tvShowsCSV, 'tv-shows-tracking');
         }
-      };
-
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
+      }
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `trackerhub-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
       toast({
-        title: "Data exported",
-        description: "Your data has been exported successfully.",
+        title: 'Data Exported Successfully',
+        description: 'Your data has been downloaded as CSV files.',
+        variant: 'default',
       });
-      setExportDialogOpen(false);
     } catch (error) {
       console.error('Export error:', error);
       toast({
-        title: "Export failed",
-        description: "Failed to export your data.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const deleteAccount = async () => {
-    try {
-      // This would typically involve calling an edge function to properly delete all user data
-      // For now, we'll just show a message
-      toast({
-        title: "Account deletion requested",
-        description: "Please contact support to complete account deletion.",
-        variant: "destructive",
-      });
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process account deletion.",
-        variant: "destructive",
+        title: 'Export Error',
+        description: 'Failed to export some data. Please try again.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleFeedbackSubmit = () => {
-    if (!feedback.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter your feedback.",
-        variant: "destructive",
-      });
-      return;
-    }
-    sendFeedbackMutation.mutate(feedback);
-  };
+  const handleImportData = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.multiple = true;
+    input.onchange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const files = Array.from(target.files || []);
+      
+      if (files.length === 0) return;
 
-  if (!user) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">
-          <p className="text-lg text-gray-600 dark:text-gray-400">Please log in to access settings.</p>
-        </div>
-      </div>
-    );
-  }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast({
+            title: 'Authentication Error',
+            description: 'You must be logged in to import data.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        let totalImported = 0;
+        let totalErrors = 0;
+
+        for (const file of files) {
+          try {
+            const text = await file.text();
+            const data = parseCSV(text);
+            
+            if (data.length === 0) {
+              console.log(`No data found in file: ${file.name}`);
+              continue;
+            }
+
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.includes('wallet')) {
+              // Import wallets
+              for (const row of data) {
+                try {
+                  const { error } = await supabase.from('wallets').insert({
+                    name: row.name || 'Imported Wallet',
+                    balance: parseFloat(row.balance) || 0,
+                    currency: row.currency || 'USD',
+                    user_id: user.id
+                  });
+                  if (error) {
+                    console.error('Error importing wallet:', error);
+                    totalErrors++;
+                  } else {
+                    totalImported++;
+                  }
+                } catch (err) {
+                  console.error('Error processing wallet row:', err);
+                  totalErrors++;
+                }
+              }
+            } else if (fileName.includes('transaction')) {
+              // Import transactions
+              for (const row of data) {
+                try {
+                  const { error } = await supabase.from('transactions').insert({
+                    reason: row.reason || 'Imported Transaction',
+                    type: row.type || 'expense',
+                    income: row.income ? parseFloat(row.income) : null,
+                    expense: row.expense ? parseFloat(row.expense) : null,
+                    date: row.date || new Date().toISOString().split('T')[0],
+                    wallet_id: row.wallet_id,
+                    category_id: row.category_id || null,
+                    user_id: user.id
+                  });
+                  if (error) {
+                    console.error('Error importing transaction:', error);
+                    totalErrors++;
+                  } else {
+                    totalImported++;
+                  }
+                } catch (err) {
+                  console.error('Error processing transaction row:', err);
+                  totalErrors++;
+                }
+              }
+            } else if (fileName.includes('transfer')) {
+              // Import transfers
+              for (const row of data) {
+                try {
+                  const { error } = await supabase.from('transfers').insert({
+                    from_wallet_id: row.from_wallet_id,
+                    to_wallet_id: row.to_wallet_id,
+                    amount: parseFloat(row.amount) || 0,
+                    date: row.date || new Date().toISOString().split('T')[0],
+                    description: row.description || null,
+                    status: row.status || 'completed',
+                    user_id: user.id
+                  });
+                  if (error) {
+                    console.error('Error importing transfer:', error);
+                    totalErrors++;
+                  } else {
+                    totalImported++;
+                  }
+                } catch (err) {
+                  console.error('Error processing transfer row:', err);
+                  totalErrors++;
+                }
+              }
+            } else if (fileName.includes('categor')) {
+              // Import categories
+              for (const row of data) {
+                try {
+                  const { error } = await supabase.from('categories').insert({
+                    name: row.name || 'Imported Category',
+                    color: row.color || '#3B82F6',
+                    user_id: user.id
+                  });
+                  if (error) {
+                    console.error('Error importing category:', error);
+                    totalErrors++;
+                  } else {
+                    totalImported++;
+                  }
+                } catch (err) {
+                  console.error('Error processing category row:', err);
+                  totalErrors++;
+                }
+              }
+            } else if (fileName.includes('movie')) {
+              // Import movies
+              for (const row of data) {
+                try {
+                  const { error } = await supabase.from('movies').insert({
+                    title: row.title || 'Imported Movie',
+                    description: row.description || '',
+                    genre: row.genre || '',
+                    release_year: row.release_year || '',
+                    director: row.director || '',
+                    duration_minutes: row.duration_minutes || '',
+                    poster_url: row.poster_url || '',
+                    rating: row.rating || '',
+                    status: row.status,
+                    user_rating: row.user_rating || '',
+                    user_notes: row.user_notes || '',
+                    watched_at: row.watched_at || '',
+                    created_at: row.created_at || new Date().toISOString().split('T')[0],
+                    user_id: user.id
+                  });
+                  if (error) {
+                    console.error('Error importing movie:', error);
+                    totalErrors++;
+                  } else {
+                    totalImported++;
+                  }
+                } catch (err) {
+                  console.error('Error processing movie row:', err);
+                  totalErrors++;
+                }
+              }
+            } else if (fileName.includes('show')) {
+              // Import TV shows tracking data instead of trying to create new shows
+              for (const row of data) {
+                try {
+                  // Check if show exists first, then create tracking record
+                  const { data: existingShow } = await supabase
+                    .from('shows')
+                    .select('id')
+                    .eq('title', row.show_title || row.title)
+                    .single();
+
+                  if (existingShow) {
+                    const { error } = await supabase.from('user_show_tracking').insert({
+                      show_id: existingShow.id,
+                      user_id: user.id,
+                      total_episodes: parseInt(row.total_episodes) || 0,
+                      watched_episodes: parseInt(row.watched_episodes) || 0,
+                      last_updated: row.last_updated || new Date().toISOString()
+                    });
+                    if (error) {
+                      console.error('Error importing TV show tracking:', error);
+                      totalErrors++;
+                    } else {
+                      totalImported++;
+                    }
+                  } else {
+                    console.log(`Show not found: ${row.show_title || row.title}`);
+                    totalErrors++;
+                  }
+                } catch (err) {
+                  console.error('Error processing TV show tracking row:', err);
+                  totalErrors++;
+                }
+              }
+            }
+          } catch (fileError) {
+            console.error(`Error processing file ${file.name}:`, fileError);
+            totalErrors++;
+          }
+        }
+        
+        if (totalImported > 0) {
+          toast({
+            title: 'Data Import Successful',
+            description: `Successfully imported ${totalImported} records. ${totalErrors > 0 ? `${totalErrors} errors occurred.` : ''} Please refresh the page to see changes.`,
+          });
+        } else {
+          toast({
+            title: 'Import Warning',
+            description: 'No valid data was imported. Please check your CSV files format.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        toast({
+          title: 'Import Error',
+          description: 'Failed to import data. Please check the file format and try again.',
+          variant: 'destructive',
+        });
+      }
+    };
+    input.click();
+  };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-2 mb-6">
-        <SettingsIcon className="h-6 w-6" />
-        <h1 className="text-3xl font-bold">Settings</h1>
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-green-700">TrackerHub Settings</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Configure your application preferences</p>
       </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-green-200 lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-green-700">App Preferences</CardTitle>
+            <CardDescription>Choose which apps you want to use</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="public-toggle">Public</Label>
+                  <Globe className="h-4 w-4 text-blue-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Browse public shows and universes
+                </p>
+              </div>
+              <Switch 
+                id="public-toggle" 
+                checked={settings.enabledApps.public}
+                onCheckedChange={() => toggleApp('public')}
+                className="flex-shrink-0"
+              />
+            </div>
 
-      {/* Profile Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <User className="h-5 w-5" />
-            <span>Profile Information</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Email</Label>
-              <Input value={user.email || ''} disabled />
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="movies-toggle">Movies</Label>
+                  <Lock className="h-4 w-4 text-gray-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Track your movie watchlist and ratings {!user && "(Login required)"}
+                </p>
+              </div>
+              <Switch 
+                id="movies-toggle" 
+                checked={settings.enabledApps.movies}
+                onCheckedChange={() => toggleApp('movies')}
+                className="flex-shrink-0"
+              />
             </div>
-            <div>
-              <Label>User ID</Label>
-              <Input value={user.id || ''} disabled />
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="tv-shows-toggle">TV Show Tracker</Label>
+                  <Lock className="h-4 w-4 text-gray-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Track your favorite TV shows and episodes {!user && "(Login required)"}
+                </p>
+              </div>
+              <Switch 
+                id="tv-shows-toggle" 
+                checked={settings.enabledApps.tvShows}
+                onCheckedChange={() => toggleApp('tvShows')}
+                className="flex-shrink-0"
+              />
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="default">
-              Verified
-            </Badge>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Account active
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="finance-toggle">Finance Manager</Label>
+                  <Lock className="h-4 w-4 text-gray-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Manage your personal finances and expenses {!user && "(Login required)"}
+                </p>
+              </div>
+              <Switch 
+                id="finance-toggle" 
+                checked={settings.enabledApps.finance}
+                onCheckedChange={() => toggleApp('finance')}
+                className="flex-shrink-0"
+              />
+            </div>
 
-      {/* Theme Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            {darkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-            <span>Appearance</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Dark Mode</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Toggle between light and dark themes
-              </p>
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="settlebill-toggle">SettleBill</Label>
+                  <Lock className="h-4 w-4 text-gray-600" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Split bills and settle expenses with friends {!user && "(Login required)"}
+                </p>
+              </div>
+              <Switch 
+                id="settlebill-toggle" 
+                checked={settings.enabledApps.settlebill}
+                onCheckedChange={() => toggleApp('settlebill')}
+                className="flex-shrink-0"
+              />
             </div>
-            <Switch
-              checked={darkMode}
-              onCheckedChange={handleDarkModeToggle}
-            />
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Mail className="h-5 w-5" />
-            <span>Notifications</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Email Notifications</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Receive email updates about your activities
-              </p>
-            </div>
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) => handleNotificationToggle('email', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Bill Reminders</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Get reminded about pending bills and settlements
-              </p>
-            </div>
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) => handleNotificationToggle('bills', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>New Episodes</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Get notified when new episodes are available
-              </p>
-            </div>
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) => handleNotificationToggle('episodes', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+            {user && (
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <Label htmlFor="admin-toggle">Admin</Label>
+                  <p className="text-sm text-muted-foreground">
+                    System administration and management
+                  </p>
+                </div>
+                <Switch 
+                  id="admin-toggle" 
+                  checked={settings.enabledApps.admin}
+                  onCheckedChange={() => toggleApp('admin')}
+                  className="flex-shrink-0"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Privacy Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5" />
-            <span>Privacy</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Public Profile</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Allow others to see your public activity
+        <Card className="border-green-200">
+          <CardHeader>
+            <CardTitle className="text-green-700">Currency Settings</CardTitle>
+            <CardDescription>Choose your preferred currency for transactions</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-2">
+              <Label htmlFor="currency">Display Currency</Label>
+              <Select 
+                value={currency.code} 
+                onValueChange={handleCurrencyChange}
+              >
+                <SelectTrigger id="currency" className="w-full">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currencyOption) => (
+                    <SelectItem key={currencyOption.code} value={currencyOption.code}>
+                      <div className="flex items-center">
+                        <span className="mr-2">{currencyOption.symbol}</span>
+                        <span>{currencyOption.name} ({currencyOption.code})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground mt-1">
+                This will change how amounts are displayed across the app
               </p>
             </div>
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) => handlePrivacyToggle('public_profile', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Share Watchlists</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Allow friends to see your TV shows and movies
-              </p>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="example-amount">Example Amount</Label>
+              <div className="flex items-center p-2 border rounded-md bg-muted/30">
+                <BadgeIndianRupee className="h-5 w-5 mr-2" />
+                <span className="text-xl font-semibold">
+                  {currency.symbol} 1,000.00
+                </span>
+              </div>
             </div>
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) => handlePrivacyToggle('share_watchlists', checked)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Data Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Download className="h-5 w-5" />
-            <span>Data Management</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Export Data</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Download all your TrackerHub data
-              </p>
-            </div>
-            <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+          </CardContent>
+        </Card>
+        
+        <Card className="border-green-200 lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-green-700">Data Management</CardTitle>
+            <CardDescription>Export or import your data in CSV format with customizable options</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Label>Export Data as CSV</Label>
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Select data to export:</Label>
+                  <div className="space-y-2">
+                    {Object.entries(exportOptions).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={key}
+                          checked={value}
+                          onCheckedChange={(checked) => 
+                            setExportOptions(prev => ({ ...prev, [key]: checked as boolean }))
+                          }
+                        />
+                        <Label htmlFor={key} className="text-sm capitalize">
+                          {key === 'tvShows' ? 'TV Shows Tracking' : key}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button onClick={handleExportData} className="w-full bg-green-600 hover:bg-green-700">
                   <Download className="h-4 w-4 mr-2" />
-                  Export
+                  Export Selected Data
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Export Your Data</DialogTitle>
-                  <DialogDescription>
-                    This will download all your TrackerHub data including TV shows, movies, and finance records in JSON format.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setExportDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={exportUserData} disabled={isExporting}>
-                    {isExporting ? "Exporting..." : "Export Data"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Feedback */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Send Feedback</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Share your thoughts, suggestions, or report issues..."
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            rows={4}
-          />
-          <Button onClick={handleFeedbackSubmit} disabled={sendFeedbackMutation.isPending}>
-            {sendFeedbackMutation.isPending ? "Sending..." : "Send Feedback"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="border-red-200 dark:border-red-800">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-red-600 dark:text-red-400">
-            <Trash2 className="h-5 w-5" />
-            <span>Danger Zone</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-red-600 dark:text-red-400">Delete Account</Label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Permanently delete your account and all associated data
-              </p>
+              </div>
+              
+              <div className="space-y-4">
+                <Label>Import CSV Data</Label>
+                <p className="text-sm text-muted-foreground">
+                  Import CSV files with your data. You can select multiple files to import different data types at once.
+                </p>
+                <Button onClick={handleImportData} variant="outline" className="w-full border-green-200 text-green-700 hover:bg-green-50">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import CSV Files
+                </Button>
+                <div className="flex items-start space-x-2 text-xs text-muted-foreground">
+                  <FileText className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>Supports CSV files with headers. File names should contain keywords like 'wallet', 'transaction', 'category', 'transfer', 'movie', or 'tv-show' to auto-detect data type.</span>
+                </div>
+              </div>
             </div>
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Account
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Account</DialogTitle>
-                  <DialogDescription>
-                    This action cannot be undone. This will permanently delete your account and all associated data.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button variant="destructive" onClick={deleteAccount}>
-                    Delete Account
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-200">
+          <CardHeader>
+            <CardTitle className="text-green-700">Display Preferences</CardTitle>
+            <CardDescription>Customize how financial data is displayed</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="show-cents">Show Cents</Label>
+                <p className="text-sm text-muted-foreground">
+                  Display decimal places in monetary values
+                </p>
+              </div>
+              <Switch id="show-cents" defaultChecked className="flex-shrink-0" />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="thousand-separator">Use Thousand Separator</Label>
+                <p className="text-sm text-muted-foreground">
+                  Add commas to separate thousands in numbers
+                </p>
+              </div>
+              <Switch id="thousand-separator" defaultChecked className="flex-shrink-0" />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <Label htmlFor="colorize-amounts">Colorize Amounts</Label>
+                <p className="text-sm text-muted-foreground">
+                  Show expenses in red and income in green
+                </p>
+              </div>
+              <Switch id="colorize-amounts" defaultChecked className="flex-shrink-0" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default Settings;
+export default FinanceSettings;
