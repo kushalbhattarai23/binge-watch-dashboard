@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useCurrency } from '@/hooks/useCurrency';
+import { NepaliDatePicker } from '@/components/ui/nepali-date-picker';
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -51,6 +52,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       category_id: '',
       date: new Date().toISOString().split('T')[0]
     });
+  };
+
+  const handleDateChange = (englishDate: string, nepaliDate: string) => {
+    setFormData({ ...formData, date: englishDate });
   };
 
   return (
@@ -136,13 +141,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
           
           <div>
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
+            <NepaliDatePicker
+              label="Date"
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={handleDateChange}
               required
+              id="transaction-date"
             />
           </div>
           
