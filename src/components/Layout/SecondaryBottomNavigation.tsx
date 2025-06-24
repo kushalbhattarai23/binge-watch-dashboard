@@ -67,14 +67,14 @@ export const SecondaryBottomNavigation: React.FC = () => {
       };
     }
 
-    // Movies section - blue theme
-    if (pathname.startsWith('/movies')) {
+    // Movies section - blue theme (fixed condition to only show when on movies routes)
+    if (pathname.startsWith('/movies') && pathname !== '/') {
       return {
         items: [
           { path: '/movies', icon: Film, label: 'Watchlist' },
-          { path: '/movies', icon: Play, label: 'Watched' },
-          { path: '/movies', icon: Star, label: 'Ratings' },
-          { path: '/movies', icon: Search, label: 'Discover' }
+          { path: '/movies/watched', icon: Play, label: 'Watched' },
+          { path: '/movies/ratings', icon: Star, label: 'Ratings' },
+          { path: '/movies/discover', icon: Search, label: 'Discover' }
         ],
         color: 'blue'
       };
