@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getEnabledApps } from '@/config/apps';
@@ -129,7 +130,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
       'movies': currentSection === 'movies',
       'tv-shows': currentSection === 'tv-shows',
       'finance': currentSection === 'finance',
-      'settlegara': currentSection === 'settlegara',
       'settlebill': currentSection === 'settlebill',
       'admin': currentSection === 'admin'
     };
@@ -599,7 +599,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                           : getIcon(route.icon || 'Home');
                         
                         // Show routes only to authenticated users for protected apps
-                        if ((app.id === 'finance' || app.id === 'admin' || app.id === 'settlegara' || app.id === 'movies') && !user) {
+                        if ((app.id === 'finance' || app.id === 'admin' || app.id === 'movies') && !user) {
                           return null;
                         }
                         
