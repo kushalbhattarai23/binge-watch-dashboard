@@ -557,6 +557,8 @@ export type Database = {
           description: string | null
           id: string
           network_id: string
+          paid_at: string | null
+          paid_by: string | null
           status: string
           title: string
           total_amount: number
@@ -569,6 +571,8 @@ export type Database = {
           description?: string | null
           id?: string
           network_id: string
+          paid_at?: string | null
+          paid_by?: string | null
           status?: string
           title: string
           total_amount: number
@@ -581,6 +585,8 @@ export type Database = {
           description?: string | null
           id?: string
           network_id?: string
+          paid_at?: string | null
+          paid_by?: string | null
           status?: string
           title?: string
           total_amount?: number
@@ -592,6 +598,13 @@ export type Database = {
             columns: ["network_id"]
             isOneToOne: false
             referencedRelation: "settlegara_networks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlegara_bills_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "settlegara_network_members"
             referencedColumns: ["id"]
           },
         ]
@@ -1243,6 +1256,14 @@ export type Database = {
         Args: { title: string }
         Returns: string
       }
+      get_network_settlements: {
+        Args: { _network_id: string }
+        Returns: {
+          from_user_name: string
+          to_user_name: string
+          amount: number
+        }[]
+      }
       get_show_universe_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1290,6 +1311,13 @@ export type Database = {
           air_date: string
         }[]
       }
+      get_user_debts: {
+        Args: { target_user: string }
+        Returns: {
+          owed_to: string
+          total_amount: number
+        }[]
+      }
       get_user_organization_access: {
         Args: { org_id: string }
         Returns: boolean
@@ -1312,6 +1340,14 @@ export type Database = {
       is_network_creator: {
         Args: { network: string; uid: string }
         Returns: boolean
+      }
+      settle_transitive_debts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      simplify_network_settlements: {
+        Args: { network_uuid: string }
+        Returns: undefined
       }
       update_user_show_episode_counts: {
         Args: { p_user_id: string; p_show_id: string }

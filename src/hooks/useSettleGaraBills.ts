@@ -12,6 +12,7 @@ export interface Bill {
   status: string;
   created_at: string;
   updated_at: string;
+  paid_by: string | null;
 }
 
 export interface BillSplit {
@@ -24,7 +25,7 @@ export interface BillSplit {
 }
 
 export interface CreateBillWithSplits {
-  bill: Omit<Bill, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+  bill: Omit<Bill, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'paid_by'> & { paid_by: string };
   splits: Array<{
     member_id: string;
     amount: number;
