@@ -86,7 +86,7 @@ const iconMap = {
 // Define specific icons for finance routes
 const financeRouteIcons = {
   '/finance': Home,
-  '/finance/transactions': ArrowLeftRight,
+  '/finance/transactions': CreditCard,
   '/finance/wallets': Wallet,
   '/finance/categories': Tag,
   '/finance/transfers': ArrowLeftRight,
@@ -328,8 +328,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
               </div>
             </Collapsible>
 
-            {/* TV Shows Section with Full Navigation */}
-            {(user || (!user && settings.enabledApps.tvShows)) && (
+            {/* TV Shows Section with Full Navigation - Only show content if user is logged in */}
+            {settings.enabledApps.tvShows && (
               <Collapsible 
                 open={isCollapsed && !isMobile ? true : openSections['tv-shows']}
                 onOpenChange={() => toggleSection('tv-shows')}
@@ -358,23 +358,23 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                   </CollapsibleTrigger>
                   
                   <CollapsibleContent className="space-y-1">
-                    <Link
-                      to="/tv-shows"
-                      title={isCollapsed && !isMobile ? "Dashboard" : undefined}
-                      className={cn(
-                        "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
-                        location.pathname === '/tv-shows'
-                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                          : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
-                        isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
-                      )}
-                    >
-                      <Home className="w-4 h-4 flex-shrink-0" />
-                      {(!isCollapsed || isMobile) && <span>Dashboard</span>}
-                    </Link>
-
                     {user && (
                       <>
+                        <Link
+                          to="/tv-shows"
+                          title={isCollapsed && !isMobile ? "Dashboard" : undefined}
+                          className={cn(
+                            "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
+                            location.pathname === '/tv-shows'
+                              ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+                              : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
+                            isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
+                          )}
+                        >
+                          <Home className="w-4 h-4 flex-shrink-0" />
+                          {(!isCollapsed || isMobile) && <span>Dashboard</span>}
+                        </Link>
+
                         <Link
                           to="/tv-shows/my-shows"
                           title={isCollapsed && !isMobile ? "My Shows" : undefined}
@@ -647,6 +647,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
         )}
       </nav>
 
+      {/* ... keep existing code (user profile section, footer section) */}
       {user && (
         <div className="p-3 lg:p-4 border-t border-purple-200 dark:border-purple-700 space-y-1">
           <Link
@@ -779,6 +780,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
   );
 };
 
+// ... keep existing code (export const Sidebar component)
 export const Sidebar: React.FC = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
