@@ -1,14 +1,15 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BarChart3, Heart, Globe, Lock, Users, Receipt, Wallet, Tag, ArrowLeftRight, Target, FileBarChart, Settings, CreditCard, Calculator, Bell, Film, Star, Play, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 export const SecondaryBottomNavigation: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { settings } = useAppSettings();
 
   // Only show on mobile devices
   if (!isMobile) {
@@ -29,7 +30,7 @@ export const SecondaryBottomNavigation: React.FC = () => {
     const pathname = location.pathname;
 
     // TV Shows section - purple theme
-    if (pathname.startsWith('/tv-shows')) {
+    if (pathname.startsWith('/tv-shows') && settings.enabledApps.tvShows) {
       return {
         items: [
           { path: '/tv-shows', icon: BarChart3, label: 'Dashboard' },
@@ -42,7 +43,7 @@ export const SecondaryBottomNavigation: React.FC = () => {
     }
 
     // Finance section - green theme
-    if (pathname.startsWith('/finance')) {
+    if (pathname.startsWith('/finance') && settings.enabledApps.finance) {
       return {
         items: [
           { path: '/finance', icon: BarChart3, label: 'Dashboard' },
@@ -54,8 +55,8 @@ export const SecondaryBottomNavigation: React.FC = () => {
       };
     }
 
-    // SettleBill section - rose theme
-    if (pathname.startsWith('/settlebill')) {
+    // SettleBill section - rose theme (only show if enabled)
+    if (pathname.startsWith('/settlebill') && settings.enabledApps.settlebill) {
       return {
         items: [
           { path: '/settlebill', icon: BarChart3, label: 'Overview' },
@@ -67,8 +68,8 @@ export const SecondaryBottomNavigation: React.FC = () => {
       };
     }
 
-    // Movies section - blue theme (fixed condition to only show when on movies routes)
-    if (pathname.startsWith('/movies') && pathname !== '/') {
+    // Movies section - blue theme
+    if (pathname.startsWith('/movies') && pathname !== '/' && settings.enabledApps.movies) {
       return {
         items: [
           { path: '/movies', icon: Film, label: 'Watchlist' },
@@ -80,21 +81,8 @@ export const SecondaryBottomNavigation: React.FC = () => {
       };
     }
 
-    // SettleGara section - orange theme
-    if (pathname.startsWith('/settlegara')) {
-      return {
-        items: [
-          { path: '/settlegara', icon: BarChart3, label: 'Dashboard' },
-          { path: '/settlegara/bills', icon: Receipt, label: 'Bills' },
-          { path: '/settlegara/networks', icon: Users, label: 'Networks' },
-          { path: '/settlegara/simplify', icon: Calculator, label: 'Simplify' }
-        ],
-        color: 'orange'
-      };
-    }
-
     // Public section - purple theme (default)
-    if (pathname.startsWith('/public')) {
+    if (pathname.startsWith('/public') && settings.enabledApps.public) {
       return {
         items: [
           { path: '/public/universes', icon: Globe, label: 'Universes' },
@@ -115,7 +103,7 @@ export const SecondaryBottomNavigation: React.FC = () => {
   }
 
   // Check if user needs to be authenticated for certain sections
-  if ((location.pathname.startsWith('/tv-shows') || location.pathname.startsWith('/finance') || location.pathname.startsWith('/settlegara') || location.pathname.startsWith('/settlebill') || location.pathname.startsWith('/movies')) && !user) {
+  if ((location.pathname.startsWith('/tv-shows') || location.pathname.startsWith('/finance') || location.pathname.startsWith('/settlebill') || location.pathname.startsWith('/movies')) && !user) {
     return null;
   }
 
