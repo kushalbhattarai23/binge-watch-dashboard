@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getEnabledApps } from '@/config/apps';
@@ -39,7 +38,9 @@ import {
   UserPlus,
   Shield,
   FileText,
-  Map
+  Map,
+  TrendingUp,
+  PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -76,7 +77,22 @@ const iconMap = {
   UserPlus,
   Shield,
   FileText,
-  Map
+  Map,
+  TrendingUp,
+  PieChart
+};
+
+// Define specific icons for finance routes
+const financeRouteIcons = {
+  '/finance': Home,
+  '/finance/transactions': ArrowLeftRight,
+  '/finance/wallets': Wallet,
+  '/finance/categories': Tag,
+  '/finance/transfers': ArrowLeftRight,
+  '/finance/budgets': Target,
+  '/finance/reports': TrendingUp,
+  '/finance/settings': SettingsIcon,
+  '/finance/credits': CreditCard
 };
 
 interface SidebarContentProps {
@@ -93,34 +109,49 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
   const { theme, toggleTheme } = useTheme();
   const enabledApps = getEnabledApps(settings);
   
-  // Use separate storage keys for mobile and desktop
-  const storageKey = isMobile ? 'sidebar-accordion-state-mobile' : 'sidebar-accordion-state-desktop';
-  
-  // State for accordion sections with localStorage persistence
+  // Determine which section should be open based on current route
+  const getCurrentSection = () => {
+    const path = location.pathname;
+    if (path.startsWith('/public/')) return 'public';
+    if (path.startsWith('/tv-shows')) return 'tv-shows';
+    if (path.startsWith('/finance')) return 'finance';
+    if (path.startsWith('/settlebill')) return 'settlebill';
+    if (path.startsWith('/movies')) return 'movies';
+    if (path.startsWith('/admin')) return 'admin';
+    return null;
+  };
+
+  // Initialize accordion state based on current route
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Error parsing saved accordion state:', error);
-      }
-    }
+    const currentSection = getCurrentSection();
     return {
-      'public': true,
-      'movies': true,
-      'tv-shows': true,
-      'finance': true,
-      'settlegara': true,
-      'settlebill': true,
-      'admin': true
+      'public': currentSection === 'public',
+      'movies': currentSection === 'movies',
+      'tv-shows': currentSection === 'tv-shows',
+      'finance': currentSection === 'finance',
+      'settlegara': currentSection === 'settlegara',
+      'settlebill': currentSection === 'settlebill',
+      'admin': currentSection === 'admin'
     };
   });
 
-  // Save accordion state to localStorage whenever it changes
+  // Update accordion state when route changes
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(openSections));
-  }, [openSections, storageKey]);
+    const currentSection = getCurrentSection();
+    if (currentSection) {
+      setOpenSections(prev => {
+        // Close all sections first
+        const newState = Object.keys(prev).reduce((acc, key) => {
+          acc[key] = false;
+          return acc;
+        }, {} as Record<string, boolean>);
+        
+        // Open only the current section
+        newState[currentSection] = true;
+        return newState;
+      });
+    }
+  }, [location.pathname]);
 
   const toggleSection = (sectionId: string) => {
     if (isCollapsed && !isMobile) return; // Don't toggle when collapsed on desktop only
@@ -137,17 +168,14 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
 
   // Filter apps based on user permissions, authentication status, and app settings
   const visibleApps = enabledApps.filter(app => {
-    // Show public app to everyone
     if (app.id === 'public') {
       return true;
     }
     
-    // Hide movies app if not authenticated
     if (app.id === 'movies' && !user) {
       return false;
     }
     
-    // Check if app is enabled in settings
     if (app.id === 'tv-shows' && !settings.enabledApps.tvShows) {
       return false;
     }
@@ -158,12 +186,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
       return false;
     }
     
-    // Hide TV Shows, Finance, and SettleBill if not logged in
     if ((app.id === 'tv-shows' || app.id === 'finance' || app.id === 'settlebill') && !user) {
       return false;
     }
     
-    // Admin app only for admin users
     if (app.id === 'admin') {
       const shouldShow = isAdmin;
       console.log('Admin app visibility check - isAdmin:', isAdmin, 'shouldShow:', shouldShow);
@@ -173,8 +199,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
     return true;
   });
 
-  console.log('Visible apps:', visibleApps.map(app => app.id));
-
   return (
     <div className="flex flex-col h-full relative bg-purple-50 dark:bg-purple-900/20">
       <div className="p-4 lg:p-6">
@@ -182,15 +206,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
           "flex",
           isCollapsed && !isMobile ? "justify-center items-center" : "flex-col items-center gap-4"
         )}>
-          <Link to="/" className={cn("flex items-center space-x-2")}>
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">T</span>
-            </div>
-            {(!isCollapsed || isMobile) && (
-              <span className="font-semibold text-lg">TrackerHub</span>
-            )}
-          </Link>
-          
           {onToggleCollapse && !isMobile && (
             <Button
               variant="ghost"
@@ -456,7 +471,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                       )}
                       disabled={isCollapsed && !isMobile}
                     >
-                      <Receipt className="w-5 h-5 text-cyan-500 flex-shrink-0" />
+                      <Receipt className="w-5 h-5 text-rose-500 flex-shrink-0" />
                       {(!isCollapsed || isMobile) && (
                         <>
                           <span className="font-medium text-sm flex-1 text-left">SettleBill</span>
@@ -477,7 +492,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                       className={cn(
                         "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
                         location.pathname === '/settlebill' || location.pathname === '/settlebill/'
-                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
                           : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
                         isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
                       )}
@@ -492,7 +507,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                       className={cn(
                         "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
                         location.pathname === '/settlebill/networks'
-                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
                           : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
                         isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
                       )}
@@ -507,7 +522,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                       className={cn(
                         "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
                         location.pathname === '/settlebill/bills'
-                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
                           : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
                         isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
                       )}
@@ -522,7 +537,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                       className={cn(
                         "flex items-center space-x-3 px-3 lg:px-6 py-2 rounded-lg transition-colors text-sm",
                         location.pathname === '/settlebill/simplify'
-                          ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-300"
                           : "text-muted-foreground hover:text-foreground hover:bg-purple-100 dark:hover:bg-purple-800",
                         isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
                       )}
@@ -578,7 +593,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                     {app.routes
                       .filter(route => route.path !== '/tv-shows/show/:slug')
                       .map((route) => {
-                        const Icon = getIcon(route.icon || 'Home');
+                        // Use specific icons for finance routes
+                        const IconComponent = app.id === 'finance' && financeRouteIcons[route.path as keyof typeof financeRouteIcons] 
+                          ? financeRouteIcons[route.path as keyof typeof financeRouteIcons]
+                          : getIcon(route.icon || 'Home');
                         
                         // Show routes only to authenticated users for protected apps
                         if ((app.id === 'finance' || app.id === 'admin' || app.id === 'settlegara' || app.id === 'movies') && !user) {
@@ -598,7 +616,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
                               isCollapsed && !isMobile && "lg:justify-center lg:space-x-0 lg:px-3"
                             )}
                           >
-                            <Icon className="w-4 h-4 flex-shrink-0" />
+                            <IconComponent className="w-4 h-4 flex-shrink-0" />
                             {(!isCollapsed || isMobile) && <span>{route.name}</span>}
                           </Link>
                         );
@@ -629,7 +647,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
         )}
       </nav>
 
-      {/* Show profile and settings only to authenticated users */}
       {user && (
         <div className="p-3 lg:p-4 border-t border-purple-200 dark:border-purple-700 space-y-1">
           <Link
@@ -666,7 +683,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
             <MessageSquarePlus className="w-4 h-4 flex-shrink-0" />
             {(!isCollapsed || isMobile) && <span>Requests</span>}
           </Link>
-          {/* Add Show and Add Movies links - only for admins */}
           {isAdmin && (
             <>
               <Link
@@ -698,7 +714,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ isCollapsed = false, on
         </div>
       )}
 
-      {/* Footer Links in Sidebar */}
       <div className="p-3 lg:p-4 border-t border-purple-200 dark:border-purple-700 space-y-1">
         {!user && (
           <>

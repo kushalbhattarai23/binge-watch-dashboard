@@ -28,7 +28,7 @@ export const Header: React.FC = () => {
     { path: '/tv-shows', icon: Tv, label: 'TV Shows', color: 'purple' },
     { path: '/finance', icon: DollarSign, label: 'Finance', color: 'green' },
     { path: '/movies', icon: Film, label: 'Movies', color: 'blue' },
-    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'red' },
+    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'rose' },
   ] : [
     { path: '/public/universes', icon: Globe, label: 'Public Universes', color: 'blue' },
     { path: '/public/shows', icon: Tv, label: 'Public Shows', color: 'purple' },
@@ -40,6 +40,16 @@ export const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           {/* Space reserved for mobile menu button which is rendered in Sidebar component */}
           <div className="w-10 lg:hidden"></div>
+          
+          {/* TrackerHub Title */}
+          <div className="hidden lg:flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold">T</span>
+              </div>
+              <span className="font-semibold text-lg">TrackerHub</span>
+            </Link>
+          </div>
           
           {/* Quick Links - Hidden on mobile */}
           <div className="hidden md:flex items-center space-x-2">
@@ -53,9 +63,14 @@ export const Header: React.FC = () => {
                     size="sm"
                     className={cn(
                       "flex items-center gap-2",
-                      link.path === '/settlebill' && isActive && "bg-gradient-to-r from-rose-400 to-red-500 hover:from-rose-500 hover:to-red-600 text-white",
-                      link.path === '/settlebill' && !isActive && "text-rose-600 hover:text-red-700 hover:bg-rose-50",
-                      link.path !== '/settlebill' && isActive && `bg-${link.color}-600 hover:bg-${link.color}-700 text-white`
+                      link.color === 'rose' && isActive && "bg-gradient-to-r from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white",
+                      link.color === 'rose' && !isActive && "text-rose-600 hover:text-rose-700 hover:bg-rose-50",
+                      link.color === 'purple' && isActive && "bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white",
+                      link.color === 'purple' && !isActive && "text-purple-600 hover:text-purple-700 hover:bg-purple-50",
+                      link.color === 'green' && isActive && "bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white",
+                      link.color === 'green' && !isActive && "text-green-600 hover:text-green-700 hover:bg-green-50",
+                      link.color === 'blue' && isActive && "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white",
+                      link.color === 'blue' && !isActive && "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     )}
                   >
                     <Icon className="w-4 h-4" />

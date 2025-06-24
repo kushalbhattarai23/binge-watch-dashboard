@@ -14,12 +14,12 @@ export const SimplifyPage: React.FC = () => {
         </div>
         
         <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-t-lg">
             <CardTitle className="text-xl flex items-center gap-2">
               <Calculator className="w-5 h-5" />
               Bill Simplification
             </CardTitle>
-            <p className="text-emerald-100">Optimize payments and reduce the number of transactions needed</p>
+            <p className="text-rose-100">Optimize payments and reduce the number of transactions needed</p>
           </CardHeader>
           <CardContent className="p-6">
             <SimplifyBillsForm />
