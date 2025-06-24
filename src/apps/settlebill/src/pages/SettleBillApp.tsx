@@ -10,7 +10,6 @@ import { NetworkDetailPage } from './NetworkDetailPage';
 import { CreateBillPage } from './CreateBillPage';
 import { BillDetailPage } from './BillDetailPage';
 
-
 export const SettleBillApp: React.FC = () => {
   return (
     <div className="min-h-screen flex bg-background w-full">
