@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AppSelector } from '@/components/AppSelector';
+import AppSelector from '@/components/AppSelector';
 
 const Index = () => {
   return (
