@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, TrendingUp, TrendingDown, Target } from 'lucide-rea
 import { useBudgets, CreateBudgetData } from '@/hooks/useBudgets';
 import { useCategories } from '@/hooks/useCategories';
 import { useTransactions } from '@/hooks/useTransactions';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export const Budgets: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -24,6 +24,7 @@ export const Budgets: React.FC = () => {
   const { budgets, isLoading, createBudget, updateBudget, deleteBudget } = useBudgets(selectedMonth, selectedYear);
   const { categories } = useCategories();
   const { transactions } = useTransactions();
+  const { formatAmount } = useCurrency();
 
   const [formData, setFormData] = useState<CreateBudgetData>({
     category_id: null,
@@ -144,7 +145,7 @@ export const Budgets: React.FC = () => {
         newCatBudgetsTotal > monthlyTotalBudget.amount
       ) {
         setFormError(
-          `Category budgets cannot exceed the Monthly Total Budget (${formatCurrency(monthlyTotalBudget.amount)}).`
+          `Category budgets cannot exceed the Monthly Total Budget (${formatAmount(monthlyTotalBudget.amount)}).`
         );
         return;
       }
@@ -422,16 +423,16 @@ export const Budgets: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Total Budget</p>
-              <p className="text-2xl font-bold text-green-700">{formatCurrency(totalMonthlyBudget)}</p>
+              <p className="text-2xl font-bold text-green-700">{formatAmount(totalMonthlyBudget)}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Total Spent</p>
-              <p className="text-2xl font-bold text-red-600">{formatCurrency(totalMonthlySpent)}</p>
+              <p className="text-2xl font-bold text-red-600">{formatAmount(totalMonthlySpent)}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Remaining</p>
               <p className={`text-2xl font-bold ${monthlyBudgetRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(monthlyBudgetRemaining)}
+                {formatAmount(monthlyBudgetRemaining)}
               </p>
             </div>
           </div>
@@ -474,10 +475,10 @@ export const Budgets: React.FC = () => {
                       <span>{cat.name}</span>
                     </td>
                     <td className="py-2 px-4 text-right font-mono font-medium text-red-600">
-                      {cat.expense > 0 ? formatCurrency(cat.expense) : '-'}
+                      {cat.expense > 0 ? formatAmount(cat.expense) : '-'}
                     </td>
                     <td className="py-2 px-4 text-right font-mono font-medium text-green-600">
-                      {cat.income > 0 ? formatCurrency(cat.income) : '-'}
+                      {cat.income > 0 ? formatAmount(cat.income) : '-'}
                     </td>
                   </tr>
                 ))
@@ -530,12 +531,12 @@ export const Budgets: React.FC = () => {
                   <div className="flex justify-between text-sm">
                     <span>Spent</span>
                     <span className={isOverBudget ? 'text-red-600' : 'text-green-600'}>
-                      {formatCurrency(spent)}
+                      {formatAmount(spent)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Budget</span>
-                    <span>{formatCurrency(budget.amount)}</span>
+                    <span>{formatAmount(budget.amount)}</span>
                   </div>
                   <Progress 
                     value={Math.min(percentage, 100)} 
@@ -548,8 +549,8 @@ export const Budgets: React.FC = () => {
                     </span>
                     <span className={isOverBudget ? 'text-red-600' : 'text-green-600'}>
                       {isOverBudget ? 
-                        `-${formatCurrency(Math.abs(remaining))}` : 
-                        formatCurrency(remaining)
+                        `-${formatAmount(Math.abs(remaining))}` : 
+                        formatAmount(remaining)
                       }
                     </span>
                   </div>
@@ -645,5 +646,3 @@ export const Budgets: React.FC = () => {
 };
 
 export default Budgets;
-
-// This file is now over 434 lines. Consider splitting it into smaller components for maintainability.
