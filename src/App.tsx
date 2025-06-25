@@ -11,8 +11,8 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import { AuthLayout } from '@/components/Layout/AuthLayout';
 
 // Auth Components  
-import { RequireAuth } from '@/components/Auth/RequireAuth';
-import { RequireAdmin } from '@/components/Auth/RequireAdmin';
+import RequireAuth from '@/components/Auth/RequireAuth';
+import RequireAdmin from '@/components/Auth/RequireAdmin';
 import { RequireSettleBillEnabled } from '@/components/Auth/RequireSettleBillEnabled';
 
 // Pages
@@ -58,17 +58,17 @@ import PublicTVUniverses from '@/apps/tv-shows/pages/PublicUniverses';
 import MoviesApp from '@/apps/movies/src/pages/MoviesApp';
 
 // SettleBill App
-import SettleBillApp from '@/apps/settlebill/src/pages/SettleBillApp';
-import OverviewPage from '@/apps/settlebill/src/pages/OverviewPage';
-import NetworksPage from '@/apps/settlebill/src/pages/NetworksPage';
-import CreateNetworkPage from '@/apps/settlebill/src/pages/CreateNetworkPage';
-import NetworkDetailPage from '@/apps/settlebill/src/pages/NetworkDetailPage';
-import BillsPage from '@/apps/settlebill/src/pages/BillsPage';
-import CreateBillPage from '@/apps/settlebill/src/pages/CreateBillPage';
-import BillDetailPage from '@/apps/settlebill/src/pages/BillDetailPage';
-import BillEditPage from '@/apps/settlebill/src/pages/BillEditPage';
-import SimplifyPage from '@/apps/settlebill/src/pages/SimplifyPage';
-import SettleBillSettingsPage from '@/apps/settlebill/src/pages/SettingsPage';
+import { SettleBillApp } from '@/apps/settlebill/src/pages/SettleBillApp';
+import { OverviewPage } from '@/apps/settlebill/src/pages/OverviewPage';
+import { NetworksPage } from '@/apps/settlebill/src/pages/NetworksPage';
+import { CreateNetworkPage } from '@/apps/settlebill/src/pages/CreateNetworkPage';
+import { NetworkDetailPage } from '@/apps/settlebill/src/pages/NetworkDetailPage';
+import { BillsPage } from '@/apps/settlebill/src/pages/BillsPage';
+import { CreateBillPage } from '@/apps/settlebill/src/pages/CreateBillPage';
+import { BillDetailPage } from '@/apps/settlebill/src/pages/BillDetailPage';
+import { BillEditPage } from '@/apps/settlebill/src/pages/BillEditPage';
+import { SimplifyPage } from '@/apps/settlebill/src/pages/SimplifyPage';
+import { SettleBillSettingsPage } from '@/apps/settlebill/src/pages/SettingsPage';
 
 // Admin Pages
 import AdminDashboard from '@/apps/admin/pages/Dashboard';
@@ -109,12 +109,12 @@ function App() {
 
                 {/* Auth Routes */}
                 <Route path="/login" element={
-                  <AuthLayout>
+                  <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue">
                     <Login />
                   </AuthLayout>
                 } />
                 <Route path="/signup" element={
-                  <AuthLayout>
+                  <AuthLayout title="Create account" subtitle="Get started with your new account">
                     <SignUp />
                   </AuthLayout>
                 } />
