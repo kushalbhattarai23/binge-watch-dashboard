@@ -16,6 +16,17 @@ export interface AppConfig {
 
 export const apps: AppConfig[] = [
   {
+    id: 'public',
+    name: 'Public',
+    description: 'Public shows and universes',
+    icon: 'Globe',
+    color: 'blue',
+    routes: [
+      { path: '/public/shows', name: 'Public Shows' },
+      { path: '/public/universes', name: 'Public Universes' }
+    ]
+  },
+  {
     id: 'finance',
     name: 'Finance',
     description: 'Personal finance tracking and management',
@@ -76,17 +87,6 @@ export const apps: AppConfig[] = [
       { path: '/admin', name: 'Dashboard' },
       { path: '/admin/users', name: 'Users' },
       { path: '/admin/content', name: 'Content' }
-    ]
-  },
-  {
-    id: 'public',
-    name: 'Public',
-    description: 'Public shows and universes',
-    icon: 'Globe',
-    color: 'blue',
-    routes: [
-      { path: '/public/shows', name: 'Public Shows' },
-      { path: '/public/universes', name: 'Public Universes' }
     ]
   }
 ];

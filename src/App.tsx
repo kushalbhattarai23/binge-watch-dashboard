@@ -17,17 +17,21 @@ import { RequireSettleBillEnabled } from '@/components/Auth/RequireSettleBillEna
 
 // Pages
 import Index from '@/pages/Index';
-import Login from '@/pages/Login';
-import SignUp from '@/pages/SignUp';
-import Profile from '@/pages/Profile';
-import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Landing from '@/pages/Landing';
 import Requests from '@/pages/Requests';
-import PublicShows from '@/pages/PublicShows';
-import PublicUniverses from '@/pages/PublicUniverses';
-import PublicShowDetail from '@/pages/PublicShowDetail';
-import PublicUniverseDetail from '@/pages/PublicUniverseDetail';
+
+// Authentication App Pages
+import Login from '@/apps/authentication/pages/Login';
+import SignUp from '@/apps/authentication/pages/SignUp';
+import Profile from '@/apps/authentication/pages/Profile';
+import Settings from '@/apps/authentication/pages/Settings';
+
+// Public App Pages
+import PublicShows from '@/apps/public/pages/PublicShows';
+import PublicUniverses from '@/apps/public/pages/PublicUniverses';
+import PublicShowDetail from '@/apps/public/pages/PublicShowDetail';
+import PublicUniverseDetail from '@/apps/public/pages/PublicUniverseDetail';
 
 // Finance App Pages
 import FinanceDashboard from '@/apps/finance/pages/Dashboard';
