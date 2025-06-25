@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
@@ -11,8 +10,8 @@ import { AppSidebar } from './AppSidebar';
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col w-full bg-background relative">
-      <Header />
       <SidebarProvider>
+        <Header />
         <div className="flex flex-1 w-full pt-16 md:pt-16">
           <AppSidebar />
           <SidebarInset className="flex flex-col min-w-0 overflow-hidden">
