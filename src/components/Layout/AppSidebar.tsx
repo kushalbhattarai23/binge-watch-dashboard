@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Home, 
   Tv, 
@@ -26,7 +26,9 @@ import {
   UserPlus,
   Shield,
   FileText,
-  Map
+  Map,
+  Moon,
+  Sun
 } from 'lucide-react';
 import {
   Sidebar,
@@ -47,11 +49,14 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export function AppSidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const { settings } = useAppSettings();
+  const { theme, toggleTheme } = useTheme();
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
   const isActive = (path: string) => {
@@ -301,28 +306,50 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {!user && (
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link to="/login" className="flex items-center gap-2">
-                  <LogIn className="h-4 w-4" />
-                  <span>Sign In</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                <Link to="/signup" className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  <span>Sign Up</span>
-                </Link>
-              </Button>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      )}
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center justify-between px-2 py-2">
+              <div className="flex items-center space-x-2">
+                {theme === 'light' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                <Label htmlFor="theme-toggle" className="text-sm font-medium">
+                  {theme === 'light' ? 'Light' : 'Dark'}
+                </Label>
+              </div>
+              <Switch
+                id="theme-toggle"
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+              />
+            </div>
+          </SidebarMenuItem>
+          
+          {!user && (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/login" className="flex items-center gap-2">
+                    <LogIn className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                  <Link to="/signup" className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    <span>Sign Up</span>
+                  </Link>
+                </Button>
+              </SidebarMenuItem>
+            </>
+          )}
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

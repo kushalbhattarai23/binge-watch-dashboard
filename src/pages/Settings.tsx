@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Upload, BadgeIndianRupee, FileText, Lock, Globe } from 'lucide-react';
+import { Download, Upload, BadgeIndianRupee, FileText, Lock, Globe, Moon, Sun } from 'lucide-react';
 import { currencies } from '@/config/currencies';
 import { useWallets } from '@/hooks/useWallets';
 import { useTransactions } from '@/hooks/useTransactions';
@@ -16,12 +15,14 @@ import { useTransfers } from '@/hooks/useTransfers';
 import { useMovies } from '@/hooks/useMovies';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useCurrency } from '@/hooks/useCurrency';
+import { useTheme } from '@/contexts/ThemeContext';
 import { convertToCSV, downloadCSV, parseCSV } from '@/utils/csvUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export const FinanceSettings: React.FC = () => {
   const { currency, updateCurrency } = useCurrency();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const [exportOptions, setExportOptions] = useState({
     wallets: true,
     transactions: true,
@@ -408,6 +409,62 @@ export const FinanceSettings: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-green-200">
+          <CardHeader>
+            <CardTitle className="text-green-700">Theme Settings</CardTitle>
+            <CardDescription>Customize the appearance of the application</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {theme === 'light' ? (
+                    <Sun className="h-4 w-4 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-blue-500" />
+                  )}
+                  <Label htmlFor="theme-mode">Dark Mode</Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Switch between light and dark themes
+                </p>
+              </div>
+              <Switch 
+                id="theme-mode" 
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+                className="flex-shrink-0"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Theme Selection</Label>
+              <Select value={theme} onValueChange={(value: 'light' | 'dark') => setTheme(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">
+                    <div className="flex items-center">
+                      <Sun className="mr-2 h-4 w-4" />
+                      Light Mode
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dark">
+                    <div className="flex items-center">
+                      <Moon className="mr-2 h-4 w-4" />
+                      Dark Mode
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Current theme: {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-green-200 lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-green-700">App Preferences</CardTitle>
