@@ -9,6 +9,8 @@ import { AppSidebar } from './AppSidebar';
 
 export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
+  
+    
     <div className="min-h-screen flex flex-col w-full bg-background relative">
       <SidebarProvider>
         <Header />
