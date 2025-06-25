@@ -6,11 +6,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogOut, Tv, DollarSign, Film, Receipt, Globe, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { state } = useSidebar();
 
   const getInitials = (email: string) => {
     return email?.charAt(0)?.toUpperCase() || 'U';
@@ -36,7 +37,11 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 md:left-64 right-0 z-40 h-16">
+    <header className={cn(
+      "border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 right-0 z-40 h-16",
+      // Adjust left positioning based on sidebar state
+      state === "expanded" ? "left-0 md:left-64" : "left-0"
+    )}>
       <div className="flex items-center justify-between h-full">
         <div className="flex items-center space-x-4">
           {/* Sidebar Toggle Button - Always visible */}

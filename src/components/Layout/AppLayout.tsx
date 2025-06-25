@@ -14,9 +14,9 @@ export const AppLayout: React.FC<{ children?: React.ReactNode }> = ({ children }
       <SidebarProvider>
         <div className="flex flex-1 w-full">
           <AppSidebar />
-          <SidebarInset className="flex flex-col min-w-0 overflow-hidden">
+          <SidebarInset className="flex flex-col min-w-0 overflow-hidden w-full">
             <Header />
-            <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto pt-20 pb-32 md:pb-0">
+            <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto mt-16 pb-32 md:pb-0">
               {children || <Outlet />}
             </main>
             {/* Hide footer on mobile */}
