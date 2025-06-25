@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -130,12 +131,22 @@ function App() {
                       <PublicShowDetail />
                     </AppLayout>
                   } />
+                  <Route path="/public/show/:slug" element={
+                    <AppLayout>
+                      <PublicShowDetail />
+                    </AppLayout>
+                  } />
                   <Route path="/public/universes" element={
                     <AppLayout>
                       <PublicUniverses />
                     </AppLayout>
                   } />
                   <Route path="/public/universes/:slug" element={
+                    <AppLayout>
+                      <PublicUniverseDetail />
+                    </AppLayout>
+                  } />
+                  <Route path="/public/universe/:slug" element={
                     <AppLayout>
                       <PublicUniverseDetail />
                     </AppLayout>
@@ -215,6 +226,13 @@ function App() {
                       </AppLayout>
                     </RequireAuth>
                   } />
+                  <Route path="/finance/wallet/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <WalletDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
                   <Route path="/finance/budgets" element={
                     <RequireAuth>
                       <AppLayout>
@@ -280,6 +298,13 @@ function App() {
                       </AppLayout>
                     </RequireAuth>
                   } />
+                  <Route path="/tv-shows/show/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <ShowDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
                   <Route path="/tv-shows/universes" element={
                     <RequireAuth>
                       <AppLayout>
@@ -288,6 +313,13 @@ function App() {
                     </RequireAuth>
                   } />
                   <Route path="/tv-shows/universes/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <UniverseDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/universe/:id" element={
                     <RequireAuth>
                       <AppLayout>
                         <UniverseDetail />
