@@ -29,21 +29,23 @@ export const Header: React.FC = () => {
     { path: '/tv-shows', icon: Tv, label: 'TV Shows', color: 'purple' },
     { path: '/finance', icon: DollarSign, label: 'Finance', color: 'green' },
     { path: '/movies', icon: Film, label: 'Movies', color: 'blue' },
-    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'rose' },
+    { path: '/settlebill', icon: Receipt, label: 'SettleBill', color: 'red' },
   ] : [
     { path: '/public/universes', icon: Globe, label: 'Public Universes', color: 'blue' },
     { path: '/public/shows', icon: Tv, label: 'Public Shows', color: 'purple' },
   ];
 
   return (
-    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 right-0 z-40">
-      <div className="flex items-center justify-between">
+    <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 md:left-64 right-0 z-40 h-16">
+      <div className="flex items-center justify-between h-full">
         <div className="flex items-center space-x-4">
-          {/* Sidebar Toggle Button */}
-          <SidebarTrigger />
+          {/* Sidebar Toggle Button - Only visible on mobile */}
+          <div className="md:hidden">
+            <SidebarTrigger />
+          </div>
           
-          {/* TrackerHub Title */}
-          <div className="flex items-center">
+          {/* TrackerHub Title - Hidden on desktop since it's in sidebar */}
+          <div className="flex items-center md:hidden">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold">T</span>
@@ -64,8 +66,8 @@ export const Header: React.FC = () => {
                     size="sm"
                     className={cn(
                       "flex items-center gap-2",
-                      link.color === 'rose' && isActive && "bg-gradient-to-r from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white",
-                      link.color === 'rose' && !isActive && "text-rose-600 hover:text-rose-700 hover:bg-rose-50",
+                      link.color === 'red' && isActive && "bg-gradient-to-r from-rose-400 to-red-500 hover:from-rose-500 hover:to-red-600 text-white",
+                      link.color === 'red' && !isActive && "text-rose-600 hover:text-red-700 hover:bg-rose-50",
                       link.color === 'purple' && isActive && "bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white",
                       link.color === 'purple' && !isActive && "text-purple-600 hover:text-purple-700 hover:bg-purple-50",
                       link.color === 'green' && isActive && "bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white",
