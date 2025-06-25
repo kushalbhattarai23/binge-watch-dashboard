@@ -16,6 +16,7 @@ import { useMovies } from '@/hooks/useMovies';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { convertToCSV, downloadCSV, parseCSV } from '@/utils/csvUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +24,7 @@ import { useAuth } from '@/hooks/useAuth';
 export const FinanceSettings: React.FC = () => {
   const { currency, updateCurrency } = useCurrency();
   const { theme, setTheme, toggleTheme } = useTheme();
+  const { isAdmin } = useUserRoles();
   const [exportOptions, setExportOptions] = useState({
     wallets: true,
     transactions: true,
@@ -404,14 +406,14 @@ export const FinanceSettings: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-green-700">TrackerHub Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-amber-700 dark:text-amber-300">TrackerHub Settings</h1>
         <p className="text-muted-foreground text-sm sm:text-base">Configure your application preferences</p>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-green-200">
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
-            <CardTitle className="text-green-700">Theme Settings</CardTitle>
+            <CardTitle className="text-amber-700 dark:text-amber-300">Theme Settings</CardTitle>
             <CardDescription>Customize the appearance of the application</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -465,9 +467,9 @@ export const FinanceSettings: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 lg:col-span-2">
+        <Card className="border-amber-200 dark:border-amber-800 lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-green-700">App Preferences</CardTitle>
+            <CardTitle className="text-amber-700 dark:text-amber-300">App Preferences</CardTitle>
             <CardDescription>Choose which apps you want to use</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -561,7 +563,7 @@ export const FinanceSettings: React.FC = () => {
               />
             </div>
 
-            {user && (
+            {user && isAdmin && (
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <Label htmlFor="admin-toggle">Admin</Label>
@@ -580,9 +582,9 @@ export const FinanceSettings: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-green-200">
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
-            <CardTitle className="text-green-700">Currency Settings</CardTitle>
+            <CardTitle className="text-amber-700 dark:text-amber-300">Currency Settings</CardTitle>
             <CardDescription>Choose your preferred currency for transactions</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -623,9 +625,9 @@ export const FinanceSettings: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card className="border-green-200 lg:col-span-2">
+        <Card className="border-amber-200 dark:border-amber-800 lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-green-700">Data Management</CardTitle>
+            <CardTitle className="text-amber-700 dark:text-amber-300">Data Management</CardTitle>
             <CardDescription>Export or import your data in CSV format with customizable options</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -651,7 +653,7 @@ export const FinanceSettings: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                <Button onClick={handleExportData} className="w-full bg-green-600 hover:bg-green-700">
+                <Button onClick={handleExportData} className="w-full bg-amber-600 hover:bg-amber-700">
                   <Download className="h-4 w-4 mr-2" />
                   Export Selected Data
                 </Button>
@@ -662,7 +664,7 @@ export const FinanceSettings: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   Import CSV files with your data. You can select multiple files to import different data types at once.
                 </p>
-                <Button onClick={handleImportData} variant="outline" className="w-full border-green-200 text-green-700 hover:bg-green-50">
+                <Button onClick={handleImportData} variant="outline" className="w-full border-amber-200 text-amber-700 hover:bg-amber-50">
                   <Upload className="h-4 w-4 mr-2" />
                   Import CSV Files
                 </Button>
@@ -675,9 +677,9 @@ export const FinanceSettings: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-green-200">
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
-            <CardTitle className="text-green-700">Display Preferences</CardTitle>
+            <CardTitle className="text-amber-700 dark:text-amber-300">Display Preferences</CardTitle>
             <CardDescription>Customize how financial data is displayed</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

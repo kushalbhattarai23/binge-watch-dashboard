@@ -71,7 +71,7 @@ export const apps: AppConfig[] = [
     name: 'Admin',
     description: 'Administrative tools and settings',
     icon: 'Settings',
-    color: 'gray',
+    color: 'amber',
     routes: [
       { path: '/admin', name: 'Dashboard' },
       { path: '/admin/users', name: 'Users' },

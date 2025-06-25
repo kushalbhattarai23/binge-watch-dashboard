@@ -39,10 +39,8 @@ export const Header: React.FC = () => {
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 md:left-64 right-0 z-40 h-16">
       <div className="flex items-center justify-between h-full">
         <div className="flex items-center space-x-4">
-          {/* Sidebar Toggle Button - Only visible on mobile */}
-          <div className="md:hidden">
-            <SidebarTrigger />
-          </div>
+          {/* Sidebar Toggle Button - Always visible */}
+          <SidebarTrigger />
           
           {/* TrackerHub Title - Hidden on desktop since it's in sidebar */}
           <div className="flex items-center md:hidden">
