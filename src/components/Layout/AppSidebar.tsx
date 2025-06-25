@@ -99,6 +99,7 @@ export function AppSidebar() {
     { name: 'Universes', href: '/tv-shows/universes', icon: Globe },
     { name: 'Public Shows', href: '/tv-shows/public', icon: Globe },
     { name: 'Public Universes', href: '/tv-shows/public/universes', icon: Globe },
+    { name: 'Private Universes', href: '/tv-shows/private/universes', icon: Globe },
   ] : [];
 
   const financeRoutes = user && settings.enabledApps.finance ? [
