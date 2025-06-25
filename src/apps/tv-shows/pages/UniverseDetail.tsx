@@ -27,7 +27,7 @@ export const UniverseDetail: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [episodeFilter, setEpisodeFilter] = useState<'all' | 'newer' | 'older'>('all');
 
-  // Fetch universe by slug or ID
+  // Fetch universe by slug or ID with improved logic
   const { data: universe, isLoading: universeLoading, error } = useQuery({
     queryKey: ['universe', slug],
     queryFn: async () => {
@@ -35,37 +35,98 @@ export const UniverseDetail: React.FC = () => {
       
       console.log('Fetching universe with slug/id:', slug);
       
-      // First try to find by slug
-      let { data, error } = await supabase
-        .from('universes')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
+      // Try multiple approaches to find the universe
+      const queries = [];
       
-      if (error) {
-        console.error('Error fetching by slug:', error);
-        throw error;
-      }
-      
-      // If not found by slug, try by ID
-      if (!data) {
-        console.log('Not found by slug, trying by ID');
-        const result = await supabase
+      // 1. Try by exact slug match
+      queries.push(
+        supabase
           .from('universes')
           .select('*')
-          .eq('id', slug)
-          .maybeSingle();
-        
-        if (result.error) {
-          console.error('Error fetching by ID:', result.error);
-          throw result.error;
-        }
-        
-        data = result.data;
+          .eq('slug', slug)
+          .maybeSingle()
+      );
+      
+      // 2. Try by ID if slug looks like a UUID
+      if (slug.includes('-') && slug.length > 30) {
+        queries.push(
+          supabase
+            .from('universes')
+            .select('*')
+            .eq('id', slug)
+            .maybeSingle()
+        );
       }
       
-      console.log('Found universe:', data);
-      return data as Universe | null;
+      // 3. Try by partial slug match (in case of slug variations)
+      const baseSlug = slug.split('-').slice(0, -1).join('-'); // Remove the UUID part
+      if (baseSlug && baseSlug !== slug) {
+        queries.push(
+          supabase
+            .from('universes')
+            .select('*')
+            .ilike('slug', `${baseSlug}%`)
+            .maybeSingle()
+        );
+      }
+      
+      // 4. Try to find by name that could generate this slug
+      const nameFromSlug = slug.split('-').slice(0, -1).join(' ').replace(/-/g, ' ');
+      if (nameFromSlug) {
+        queries.push(
+          supabase
+            .from('universes')
+            .select('*')
+            .ilike('name', `%${nameFromSlug}%`)
+            .maybeSingle()
+        );
+      }
+      
+      // Execute queries in sequence until we find a match
+      for (const query of queries) {
+        try {
+          const { data, error } = await query;
+          if (error) {
+            console.error('Query error:', error);
+            continue;
+          }
+          if (data) {
+            console.log('Found universe:', data);
+            return data as Universe;
+          }
+        } catch (err) {
+          console.error('Query execution error:', err);
+          continue;
+        }
+      }
+      
+      // If we still haven't found it, try to get all universes and find a match
+      console.log('Trying fallback: fetching all universes for user');
+      if (user) {
+        const { data: allUniverses, error: allError } = await supabase
+          .from('universes')
+          .select('*')
+          .or(`creator_id.eq.${user.id},is_public.eq.true`);
+          
+        if (!allError && allUniverses) {
+          console.log('All available universes:', allUniverses);
+          // Try to find by various matching criteria
+          const foundUniverse = allUniverses.find(u => 
+            u.slug === slug || 
+            u.id === slug ||
+            u.slug?.includes(baseSlug) ||
+            (u.name && slug.toLowerCase().includes(u.name.toLowerCase().replace(/\s+/g, '-')))
+          );
+          
+          if (foundUniverse) {
+            console.log('Found universe via fallback:', foundUniverse);
+            return foundUniverse as Universe;
+          }
+        }
+      }
+      
+      console.log('Universe not found with any method');
+      return null;
     },
     enabled: !!slug
   });
@@ -179,9 +240,20 @@ export const UniverseDetail: React.FC = () => {
           <Card className="border-red-200">
             <CardContent className="text-center py-8 sm:py-12">
               <h3 className="text-base sm:text-lg font-semibold mb-2">Universe Not Found</h3>
-              <p className="text-sm sm:text-base text-muted-foreground px-4">
+              <p className="text-sm sm:text-base text-muted-foreground px-4 mb-4">
                 The universe you're looking for doesn't exist or you don't have access to it.
               </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Searched for: {slug}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button onClick={() => navigate('/tv-shows/universes')} variant="outline">
+                  View Your Universes
+                </Button>
+                <Button onClick={() => navigate('/tv-shows/public-universes')} variant="outline">
+                  Browse Public Universes
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
