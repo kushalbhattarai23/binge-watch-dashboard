@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/hooks/useAuth';
+import { OrganizationProvider } from '@/contexts/OrganizationProvider';
 
 // Layout Components
 import { AppLayout } from '@/components/Layout/AppLayout';
@@ -96,380 +96,382 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-background">
-              <Routes>
+          <OrganizationProvider>
+            <Router>
+              <div className="min-h-screen bg-background">
                 {/* Landing Page */}
-                <Route path="/landing" element={<Landing />} />
-                
-                {/* Legal Pages */}
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/sitemap" element={<Sitemap />} />
+                <Routes>
+                  <Route path="/landing" element={<Landing />} />
+                  
+                  {/* Legal Pages */}
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/sitemap" element={<Sitemap />} />
 
-                {/* Auth Routes */}
-                <Route path="/login" element={
-                  <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue">
-                    <Login />
-                  </AuthLayout>
-                } />
-                <Route path="/signup" element={
-                  <AuthLayout title="Create account" subtitle="Get started with your new account">
-                    <SignUp />
-                  </AuthLayout>
-                } />
+                  {/* Auth Routes */}
+                  <Route path="/login" element={
+                    <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue">
+                      <Login />
+                    </AuthLayout>
+                  } />
+                  <Route path="/signup" element={
+                    <AuthLayout title="Create account" subtitle="Get started with your new account">
+                      <SignUp />
+                    </AuthLayout>
+                  } />
 
-                {/* Public Routes that don't require auth */}
-                <Route path="/public/shows" element={
-                  <AppLayout>
-                    <PublicShows />
-                  </AppLayout>
-                } />
-                <Route path="/public/shows/:slug" element={
-                  <AppLayout>
-                    <PublicShowDetail />
-                  </AppLayout>
-                } />
-                <Route path="/public/universes" element={
-                  <AppLayout>
-                    <PublicUniverses />
-                  </AppLayout>
-                } />
-                <Route path="/public/universes/:slug" element={
-                  <AppLayout>
-                    <PublicUniverseDetail />
-                  </AppLayout>
-                } />
+                  {/* Public Routes that don't require auth */}
+                  <Route path="/public/shows" element={
+                    <AppLayout>
+                      <PublicShows />
+                    </AppLayout>
+                  } />
+                  <Route path="/public/shows/:slug" element={
+                    <AppLayout>
+                      <PublicShowDetail />
+                    </AppLayout>
+                  } />
+                  <Route path="/public/universes" element={
+                    <AppLayout>
+                      <PublicUniverses />
+                    </AppLayout>
+                  } />
+                  <Route path="/public/universes/:slug" element={
+                    <AppLayout>
+                      <PublicUniverseDetail />
+                    </AppLayout>
+                  } />
 
-                {/* Protected Routes */}
-                <Route path="/" element={
-                  <AppLayout>
-                    <Index />
-                  </AppLayout>
-                } />
-                
-                <Route path="/profile" element={
-                  <RequireAuth>
+                  {/* Protected Routes */}
+                  <Route path="/" element={
                     <AppLayout>
-                      <Profile />
+                      <Index />
                     </AppLayout>
-                  </RequireAuth>
-                } />
-                
-                <Route path="/settings" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Settings />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
+                  } />
+                  
+                  <Route path="/profile" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Profile />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  
+                  <Route path="/settings" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Settings />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
 
-                <Route path="/requests" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Requests />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
+                  <Route path="/requests" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Requests />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
 
-                {/* Finance App Routes */}
-                <Route path="/finance" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <FinanceDashboard />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/transactions" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Transactions />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/categories" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Categories />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/categories/:id" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <CategoryDetail />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/wallets" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Wallets />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/wallets/:id" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <WalletDetail />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/budgets" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Budgets />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/companies" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Companies />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/credits" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Credits />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/transfers" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <Transfers />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/reports" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <FinanceReports />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/finance/settings" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <FinanceSettings />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
+                  {/* Finance App Routes */}
+                  <Route path="/finance" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <FinanceDashboard />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/transactions" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Transactions />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/categories" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Categories />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/categories/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <CategoryDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/wallets" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Wallets />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/wallets/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <WalletDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/budgets" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Budgets />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/companies" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Companies />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/credits" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Credits />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/transfers" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <Transfers />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/reports" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <FinanceReports />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/finance/settings" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <FinanceSettings />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
 
-                {/* TV Shows App Routes */}
-                <Route path="/tv-shows" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <TVShowsDashboard />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/my-shows" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <MyShows />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/shows/:id" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <ShowDetail />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/universes" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <PrivateUniverses />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/universes/:id" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <UniverseDetail />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/universes/:id/dashboard" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <UniverseDashboard />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/public" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <PublicTVShows />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
-                <Route path="/tv-shows/public/universes" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <PublicTVUniverses />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
+                  {/* TV Shows App Routes */}
+                  <Route path="/tv-shows" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <TVShowsDashboard />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/my-shows" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <MyShows />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/shows/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <ShowDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/universes" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <PrivateUniverses />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/universes/:id" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <UniverseDetail />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/universes/:id/dashboard" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <UniverseDashboard />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/public" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <PublicTVShows />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/public/universes" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <PublicTVUniverses />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
 
-                {/* Movies App Routes */}
-                <Route path="/movies" element={
-                  <RequireAuth>
-                    <AppLayout>
-                      <MoviesApp />
-                    </AppLayout>
-                  </RequireAuth>
-                } />
+                  {/* Movies App Routes */}
+                  <Route path="/movies" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <MoviesApp />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
 
-                {/* SettleBill App Routes */}
-                <Route path="/settlebill" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <OverviewPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/networks" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <NetworksPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/networks/create" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <CreateNetworkPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/networks/:id" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <NetworkDetailPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/bills" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <BillsPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/bills/create" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <CreateBillPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/bills/:id" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <BillDetailPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/bills/:id/edit" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <BillEditPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/simplify" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <SimplifyPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
-                <Route path="/settlebill/settings" element={
-                  <RequireAuth>
-                    <RequireSettleBillEnabled>
-                      <AppLayout>
-                        <SettleBillSettingsPage />
-                      </AppLayout>
-                    </RequireSettleBillEnabled>
-                  </RequireAuth>
-                } />
+                  {/* SettleBill App Routes */}
+                  <Route path="/settlebill" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <OverviewPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/networks" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <NetworksPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/networks/create" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <CreateNetworkPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/networks/:id" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <NetworkDetailPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/bills" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <BillsPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/bills/create" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <CreateBillPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/bills/:id" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <BillDetailPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/bills/:id/edit" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <BillEditPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/simplify" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <SimplifyPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
+                  <Route path="/settlebill/settings" element={
+                    <RequireAuth>
+                      <RequireSettleBillEnabled>
+                        <AppLayout>
+                          <SettleBillSettingsPage />
+                        </AppLayout>
+                      </RequireSettleBillEnabled>
+                    </RequireAuth>
+                  } />
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={
-                  <RequireAuth>
-                    <RequireAdmin>
-                      <AppLayout>
-                        <AdminDashboard />
-                      </AppLayout>
-                    </RequireAdmin>
-                  </RequireAuth>
-                } />
-                <Route path="/admin/users" element={
-                  <RequireAuth>
-                    <RequireAdmin>
-                      <AppLayout>
-                        <AdminUsers />
-                      </AppLayout>
-                    </RequireAdmin>
-                  </RequireAuth>
-                } />
-                <Route path="/admin/content" element={
-                  <RequireAuth>
-                    <RequireAdmin>
-                      <AppLayout>
-                        <AdminContent />
-                      </AppLayout>
-                    </RequireAdmin>
-                  </RequireAuth>
-                } />
-                <Route path="/admin/add-show" element={
-                  <RequireAuth>
-                    <RequireAdmin>
-                      <AppLayout>
-                        <AdminAddShow />
-                      </AppLayout>
-                    </RequireAdmin>
-                  </RequireAuth>
-                } />
-                <Route path="/admin/movie-import" element={
-                  <RequireAuth>
-                    <RequireAdmin>
-                      <AppLayout>
-                        <AdminMovieImport />
-                      </AppLayout>
-                    </RequireAdmin>
-                  </RequireAuth>
-                } />
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={
+                    <RequireAuth>
+                      <RequireAdmin>
+                        <AppLayout>
+                          <AdminDashboard />
+                        </AppLayout>
+                      </RequireAdmin>
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/users" element={
+                    <RequireAuth>
+                      <RequireAdmin>
+                        <AppLayout>
+                          <AdminUsers />
+                        </AppLayout>
+                      </RequireAdmin>
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/content" element={
+                    <RequireAuth>
+                      <RequireAdmin>
+                        <AppLayout>
+                          <AdminContent />
+                        </AppLayout>
+                      </RequireAdmin>
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/add-show" element={
+                    <RequireAuth>
+                      <RequireAdmin>
+                        <AppLayout>
+                          <AdminAddShow />
+                        </AppLayout>
+                      </RequireAdmin>
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/movie-import" element={
+                    <RequireAuth>
+                      <RequireAdmin>
+                        <AppLayout>
+                          <AdminMovieImport />
+                        </AppLayout>
+                      </RequireAdmin>
+                    </RequireAuth>
+                  } />
 
-                {/* Catch all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </div>
-          </Router>
+                  {/* Catch all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </div>
+            </Router>
+          </OrganizationProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

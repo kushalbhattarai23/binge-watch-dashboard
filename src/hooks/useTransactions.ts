@@ -40,6 +40,9 @@ export const useTransactions = () => {
         query = query.eq('user_id', user.id).is('organization_id', null);
       } else if (currentOrganization) {
         query = query.eq('organization_id', currentOrganization.id);
+      } else {
+        // Fallback to personal mode if no organization
+        query = query.eq('user_id', user.id).is('organization_id', null);
       }
       
       const { data, error } = await query.order('date', { ascending: false });
