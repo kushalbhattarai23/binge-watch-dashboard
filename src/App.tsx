@@ -8,7 +8,6 @@ import { OrganizationProvider } from '@/contexts/OrganizationProvider';
 
 // Layout Components
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { AuthLayout } from '@/components/Layout/AuthLayout';
 
 // Auth Components  
 import RequireAuth from '@/components/Auth/RequireAuth';
@@ -110,14 +109,14 @@ function App() {
 
                   {/* Auth Routes */}
                   <Route path="/login" element={
-                    <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue">
+                    <AppLayout>
                       <Login />
-                    </AuthLayout>
+                    </AppLayout>
                   } />
                   <Route path="/signup" element={
-                    <AuthLayout title="Create account" subtitle="Get started with your new account">
+                    <AppLayout>
                       <SignUp />
-                    </AuthLayout>
+                    </AppLayout>
                   } />
 
                   {/* Public Routes that don't require auth */}
