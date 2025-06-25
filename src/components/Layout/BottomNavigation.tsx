@@ -17,8 +17,8 @@ export const BottomNavigation: React.FC = () => {
     return null;
   }
 
-  // Don't show on login/signup pages or landing page
-  if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/landing') {
+  // Don't show only on landing page
+  if (location.pathname === '/landing') {
     return null;
   }
 
@@ -40,35 +40,35 @@ export const BottomNavigation: React.FC = () => {
       path: '/public/universes',
       icon: Globe,
       label: 'Public',
-      show: settings.enabledApps.public,
+      show: user ? settings.enabledApps.public : true, // Show when logged out or enabled
       color: 'blue'
     },
     {
       path: '/movies',
       icon: Film,
       label: 'Movies',
-      show: settings.enabledApps.movies && user,
+      show: user ? settings.enabledApps.movies : true, // Show when logged out or enabled
       color: 'blue'
     },
     {
       path: '/tv-shows',
       icon: Tv,
       label: 'TV Shows',
-      show: user && settings.enabledApps.tvShows,
+      show: user ? settings.enabledApps.tvShows : true, // Show when logged out or enabled
       color: 'purple'
     },
     {
       path: '/finance',
       icon: DollarSign,
       label: 'Finance',
-      show: user && settings.enabledApps.finance,
+      show: user ? settings.enabledApps.finance : true, // Show when logged out or enabled
       color: 'green'
     },
     {
       path: '/settlebill',
       icon: Receipt,
       label: 'Bills',
-      show: user && settings.enabledApps.settlebill,
+      show: user ? settings.enabledApps.settlebill : true, // Show when logged out or enabled
       color: 'orange'
     },
     {

@@ -221,7 +221,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError(error);
       } else {
         console.log('Logout successful');
-        // State will be updated automatically by the auth state listener
+        // Redirect to home page after logout
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Logout exception:', error);

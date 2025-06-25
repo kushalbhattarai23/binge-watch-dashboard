@@ -11,36 +11,60 @@ const Index = () => {
   const { settings } = useAppSettings();
 
   const handleAppSelect = (appId: string) => {
-    // Check if the app is enabled before navigating
+    // When user is not logged in, show all apps but redirect to login for protected routes
     switch (appId) {
       case 'tv-shows':
-        if (settings.enabledApps.tvShows && user) {
-          navigate('/tv-shows');
+        if (user) {
+          if (settings.enabledApps.tvShows) {
+            navigate('/tv-shows');
+          }
+        } else {
+          // Redirect to login if not authenticated
+          navigate('/login');
         }
         break;
       case 'finance':
-        if (settings.enabledApps.finance && user) {
-          navigate('/finance');
+        if (user) {
+          if (settings.enabledApps.finance) {
+            navigate('/finance');
+          }
+        } else {
+          // Redirect to login if not authenticated
+          navigate('/login');
         }
         break;
       case 'movies':
-        if (settings.enabledApps.movies && user) {
-          navigate('/movies');
+        if (user) {
+          if (settings.enabledApps.movies) {
+            navigate('/movies');
+          }
+        } else {
+          // Redirect to login if not authenticated
+          navigate('/login');
         }
         break;
       case 'settlebill':
-        if (settings.enabledApps.settlebill && user) {
-          navigate('/settlebill');
+        if (user) {
+          if (settings.enabledApps.settlebill) {
+            navigate('/settlebill');
+          }
+        } else {
+          // Redirect to login if not authenticated
+          navigate('/login');
         }
         break;
       case 'public':
-        if (settings.enabledApps.public) {
+        // Public routes are accessible to everyone
+        if (user ? settings.enabledApps.public : true) {
           navigate('/public/shows');
         }
         break;
       case 'admin':
-        if (settings.enabledApps.admin && user) {
+        if (user && settings.enabledApps.admin) {
           navigate('/admin');
+        } else if (!user) {
+          // Redirect to login if not authenticated
+          navigate('/login');
         }
         break;
       default:

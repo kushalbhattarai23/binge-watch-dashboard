@@ -34,7 +34,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Browse public shows and universes',
       icon: Globe,
       color: 'bg-blue-500',
-      enabled: settings.enabledApps.public,
+      enabled: user ? settings.enabledApps.public : true, // Always show when logged out
       requiresAuth: false
     },
     {
@@ -43,7 +43,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Track your movie watchlist and ratings',
       icon: Film,
       color: 'bg-blue-500',
-      enabled: settings.enabledApps.movies,
+      enabled: user ? settings.enabledApps.movies : true, // Always show when logged out
       requiresAuth: true
     },
     {
@@ -52,7 +52,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Track your favorite TV shows and episodes',
       icon: Tv,
       color: 'bg-purple-500',
-      enabled: settings.enabledApps.tvShows,
+      enabled: user ? settings.enabledApps.tvShows : true, // Always show when logged out
       requiresAuth: true
     },
     {
@@ -61,7 +61,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Personal finance tracking and management',
       icon: DollarSign,
       color: 'bg-green-500',
-      enabled: settings.enabledApps.finance,
+      enabled: user ? settings.enabledApps.finance : true, // Always show when logged out
       requiresAuth: true
     },
     {
@@ -70,7 +70,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Split bills and manage expenses with friends',
       icon: Receipt,
       color: 'bg-rose-500',
-      enabled: settings.enabledApps.settlebill,
+      enabled: user ? settings.enabledApps.settlebill : true, // Always show when logged out
       requiresAuth: true
     },
     {
@@ -79,12 +79,21 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
       description: 'Administrative tools and settings',
       icon: Settings,
       color: 'bg-gray-500',
-      enabled: settings.enabledApps.admin && user,
+      enabled: user ? settings.enabledApps.admin : false, // Only show if user is logged in and enabled
       requiresAuth: true
     }
   ];
 
-  const enabledApps = apps.filter(app => app.enabled && (!app.requiresAuth || user));
+  // When logged out, show all apps except admin
+  // When logged in, show only enabled apps
+  const visibleApps = apps.filter(app => {
+    if (!user) {
+      // Show all apps except admin when logged out
+      return app.id !== 'admin';
+    }
+    // Show only enabled apps when logged in
+    return app.enabled;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 md:p-6">
@@ -99,7 +108,7 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enabledApps.map((app) => {
+          {visibleApps.map((app) => {
             const Icon = app.icon;
             return (
               <Card
@@ -123,11 +132,10 @@ const AppSelector: React.FC<AppSelectorProps> = ({ onAppSelect }) => {
           })}
         </div>
 
-        {enabledApps.length === 0 && (
+        {visibleApps.length === 0 && (
           <div className="text-center mt-12">
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              No applications are currently enabled. 
-              {user ? ' Please enable apps in Settings.' : ' Please log in to access applications.'}
+              No applications are currently enabled. Please enable apps in Settings.
             </p>
           </div>
         )}
