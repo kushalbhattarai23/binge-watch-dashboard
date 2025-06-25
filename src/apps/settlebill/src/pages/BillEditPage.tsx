@@ -56,14 +56,14 @@ export const BillEditPage: React.FC = () => {
           </Button>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Edit Bill</h1>
-            <p className="text-sm text-gray-600 hidden sm:block">Update bill information and splits</p>
+            <p className="text-sm text-gray-600 hidden sm:block">Update bill information</p>
           </div>
         </div>
         
         <Card className="shadow-lg">
           <CardHeader className="bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-t-lg">
             <CardTitle className="text-lg md:text-xl">Edit Bill Information</CardTitle>
-            <p className="text-cyan-100 text-sm md:text-base">Update the expense details and member splits</p>
+            <p className="text-cyan-100 text-sm md:text-base">Update the expense details</p>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <BillEditForm 
