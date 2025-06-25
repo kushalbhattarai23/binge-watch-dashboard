@@ -3,9 +3,10 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, Tv, DollarSign, Film, Receipt, Globe } from 'lucide-react';
+import { LogOut, Tv, DollarSign, Film, Receipt, Globe, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -38,11 +39,11 @@ export const Header: React.FC = () => {
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6 py-3 fixed top-0 left-0 right-0 z-40">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          {/* Space reserved for mobile menu button which is rendered in Sidebar component */}
-          <div className="w-10 lg:hidden"></div>
+          {/* Sidebar Toggle Button */}
+          <SidebarTrigger />
           
           {/* TrackerHub Title */}
-          <div className="hidden lg:flex items-center">
+          <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-primary-foreground font-bold">T</span>
