@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Settings as SettingsIcon, Palette, Shield, Bell, Apps } from 'lucide-react';
+import { Settings as SettingsIcon, Palette, Shield, Bell, Grid3X3 } from 'lucide-react';
 
 const Settings = () => {
   const { settings, updateSettings } = useAppSettings();
@@ -36,7 +36,7 @@ const Settings = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Apps className="h-5 w-5" />
+              <Grid3X3 className="h-5 w-5" />
               Application Preferences
             </CardTitle>
             <CardDescription>

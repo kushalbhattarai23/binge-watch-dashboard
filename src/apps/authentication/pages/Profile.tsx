@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Mail, Calendar } from 'lucide-react';
+import { User, Mail } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -24,10 +24,6 @@ const Profile = () => {
   const handleSave = () => {
     // TODO: Implement profile update functionality
     setIsEditing(false);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -88,11 +84,6 @@ const Profile = () => {
                 disabled={!isEditing}
                 placeholder="Enter your last name"
               />
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Member since {user?.created_at ? formatDate(user.created_at) : 'Unknown'}</span>
             </div>
 
             <div className="flex gap-2 pt-4">
