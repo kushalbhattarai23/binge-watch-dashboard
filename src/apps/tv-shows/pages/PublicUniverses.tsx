@@ -72,7 +72,7 @@ export const PublicUniverses: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {publicUniverses.map((universe) => (
             <Card 
-              key={universe.id} 
+              key={universe.slug} 
               className="border-blue-200 hover:shadow-lg transition-shadow cursor-pointer group"
               onClick={() => handleUniverseClick(universe)}
             >
