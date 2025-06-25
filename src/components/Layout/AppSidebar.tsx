@@ -171,16 +171,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <Link to="/" className="flex items-center space-x-2 px-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">T</span>
-          </div>
-          <span className="font-semibold text-lg">TrackerHub</span>
-        </Link>
-      </SidebarHeader>
-      
+    <Sidebar>     
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -331,12 +322,12 @@ export function AppSidebar() {
           {!user && (
             <>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
                   <Link to="/login" className="flex items-center gap-2">
                     <LogIn className="h-4 w-4" />
                     <span>Sign In</span>
                   </Link>
-                </SidebarMenuButton>
+                </Button>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700">
