@@ -316,21 +316,21 @@ function App() {
                       </AppLayout>
                     </RequireAuth>
                   } />
-                  <Route path="/tv-shows/universes/:id" element={
+                  <Route path="/tv-shows/universes/:slug" element={
                     <RequireAuth>
                       <AppLayout>
                         <UniverseDetail />
                       </AppLayout>
                     </RequireAuth>
                   } />
-                  <Route path="/tv-shows/universe/:id" element={
+                  <Route path="/tv-shows/universe/:slug" element={
                     <RequireAuth>
                       <AppLayout>
                         <UniverseDetail />
                       </AppLayout>
                     </RequireAuth>
                   } />
-                  <Route path="/tv-shows/universes/:id/dashboard" element={
+                  <Route path="/tv-shows/universes/:slug/dashboard" element={
                     <RequireAuth>
                       <AppLayout>
                         <UniverseDashboard />
@@ -348,6 +348,13 @@ function App() {
                     <RequireAuth>
                       <AppLayout>
                         <PublicTVUniverses />
+                      </AppLayout>
+                    </RequireAuth>
+                  } />
+                  <Route path="/tv-shows/private/universes" element={
+                    <RequireAuth>
+                      <AppLayout>
+                        <PrivateUniverses />
                       </AppLayout>
                     </RequireAuth>
                   } />
