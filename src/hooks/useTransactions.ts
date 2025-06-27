@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export interface Transaction {
   id: string;
@@ -24,6 +24,7 @@ export const useTransactions = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentOrganization, isPersonalMode } = useOrganizationContext();
+  const { showTransactionNotification } = useNotifications();
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactions', user?.id, currentOrganization?.id],
@@ -80,10 +81,17 @@ export const useTransactions = () => {
       }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
       toast({ title: 'Transaction created successfully' });
+      
+      // Show notification for the new transaction
+      await showTransactionNotification({
+        type: data.type,
+        amount: data.type === 'income' ? data.income || 0 : data.expense || 0,
+        reason: data.reason
+      });
     },
     onError: (error: Error) => {
       console.error('Transaction creation error:', error);
