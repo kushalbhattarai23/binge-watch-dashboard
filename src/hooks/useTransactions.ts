@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -81,14 +82,14 @@ export const useTransactions = () => {
       }
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
       toast({ title: 'Transaction created successfully' });
       
-      // Show notification for the new transaction
-      await showTransactionNotification({
-        type: data.type,
+      // Show notification for the new transaction - fix the type issue
+      showTransactionNotification({
+        type: data.type as 'income' | 'expense',
         amount: data.type === 'income' ? data.income || 0 : data.expense || 0,
         reason: data.reason
       });
